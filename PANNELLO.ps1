@@ -370,9 +370,9 @@ function Show-Header {
 
     Clear-Host
     Write-Host ""
-    Write-Host "  ======================================================" -ForegroundColor DarkCyan
-    Write-Host "            $($ProjectName.ToUpper()) CONTROL PANEL" -ForegroundColor Cyan
-    Write-Host "  ======================================================" -ForegroundColor DarkCyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host "        HORECA - PANNELLO CONTROLLO" -ForegroundColor White
+    Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  Percorso : $root" -ForegroundColor DarkGray
     if ($root -ne $ExpectedRoot) {
@@ -399,14 +399,14 @@ function Show-Header {
     }
 
     Write-Host ""
-    Write-Host "  [1] Avvia locale" -ForegroundColor White
-    Write-Host "  [2] Condividi online (link pubblico)" -ForegroundColor White
-    Write-Host "  [3] Chiudi tutto" -ForegroundColor White
-    Write-Host "  [4] Apri locale nel browser" -ForegroundColor White
-    Write-Host "  [5] Apri link online nel browser" -ForegroundColor White
-    Write-Host "  [6] Vedi log" -ForegroundColor White
-    Write-Host "  [7] Ripara PostCSS (BOM)" -ForegroundColor White
-    Write-Host "  [Q] Esci" -ForegroundColor White
+    Write-Host "  [1] Avvia locale" -ForegroundColor Green
+    Write-Host "  [2] Condividi online (link pubblico)" -ForegroundColor Magenta
+    Write-Host "  [3] Chiudi tutto" -ForegroundColor Red
+    Write-Host "  [4] Apri locale nel browser" -ForegroundColor Cyan
+    Write-Host "  [5] Apri link online nel browser" -ForegroundColor DarkCyan
+    Write-Host "  [6] Vedi log" -ForegroundColor Yellow
+    Write-Host "  [7] Ripara PostCSS (BOM)" -ForegroundColor DarkYellow
+    Write-Host "  [Q] Esci" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  Suggerimento: premi direttamente il tasto (senza Invio)." -ForegroundColor DarkGray
 }

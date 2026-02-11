@@ -117,19 +117,24 @@ export default function Header({ cartItemCount, onCartClick, favoritesCount, onF
                     onAccountClick();
                   }
                 }}
-                className={`flex items-center gap-1.5 transition-colors p-1.5 rounded-full ${
-                  user ? (isPro ? 'text-amber-600 hover:bg-amber-50' : isAdmin ? 'text-slate-700 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50') : 'text-slate-700 hover:text-slate-900'
+                className={`relative flex items-center justify-center transition-colors p-2 rounded-full ring-1 ${
+                  user
+                    ? (isPro
+                      ? 'text-amber-700 hover:bg-amber-50 ring-amber-200'
+                      : isAdmin
+                        ? 'text-slate-700 hover:bg-slate-100 ring-slate-300'
+                        : 'text-emerald-700 hover:bg-emerald-50 ring-emerald-200')
+                    : 'text-slate-700 hover:text-slate-900 ring-slate-300'
                 }`}
                 aria-label="Account"
               >
-                {user ? (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                <User className="w-5 h-5" />
+                {user && (
+                  <span className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold ring-2 ring-white ${
                     isPro ? 'bg-amber-500' : isAdmin ? 'bg-slate-700' : 'bg-emerald-500'
                   }`}>
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                ) : (
-                  <User className="w-5 h-5" />
+                    {(user.name || '?').trim().charAt(0).toUpperCase() || '?'}
+                  </span>
                 )}
               </button>
 
