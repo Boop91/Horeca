@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Mail, Lock, User, Phone, Eye, EyeOff, Shield, Crown } from 'lucide-react';
+import { X, Mail, Lock, User, Phone, Eye, EyeOff, Shield, Crown, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface AuthModalProps {
@@ -15,7 +15,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -64,14 +63,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-emerald-600 to-emerald-700 p-6 rounded-t-2xl">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-hidden border border-emerald-100">
+        <div className="relative bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-5 rounded-t-2xl">
           <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/20 transition-colors">
             <X className="w-5 h-5 text-white" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -85,24 +83,22 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
         </div>
 
-        {/* Mode Toggle */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 bg-gray-50">
           <button
             onClick={() => { setMode('login'); setError(''); }}
-            className={`flex-1 py-3 text-sm font-bold transition-colors ${mode === 'login' ? 'text-emerald-700 border-b-2 border-emerald-600 bg-emerald-50/50' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${mode === 'login' ? 'text-emerald-700 border-b-2 border-emerald-600 bg-white' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Accedi
           </button>
           <button
             onClick={() => { setMode('register'); setError(''); }}
-            className={`flex-1 py-3 text-sm font-bold transition-colors ${mode === 'register' ? 'text-emerald-700 border-b-2 border-emerald-600 bg-emerald-50/50' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${mode === 'register' ? 'text-emerald-700 border-b-2 border-emerald-600 bg-white' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Registrati
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Role Selection (register only) */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[calc(92vh-140px)]">
           {mode === 'register' && (
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Tipo di account</label>
@@ -129,10 +125,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
 
-          {/* Name (register only) */}
           {mode === 'register' && (
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Nome e Cognome</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1.5">Nome e Cognome</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -147,9 +142,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
 
-          {/* Email */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -163,9 +157,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           </div>
 
-          {/* Password */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-bold text-gray-700 mb-1.5">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -183,10 +176,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           </div>
 
-          {/* Phone (register only) */}
           {mode === 'register' && (
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Telefono</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1.5">Telefono</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -207,15 +199,28 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-          >
-            {loading ? 'Caricamento...' : mode === 'login' ? 'Accedi' : 'Registrati'}
-          </button>
+          <div className="pt-1 space-y-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {loading
+                ? 'Caricamento...'
+                : mode === 'login'
+                  ? 'Conferma accesso'
+                  : 'Conferma registrazione'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              Annulla
+            </button>
+          </div>
 
-          {/* Demo credentials */}
           {mode === 'login' && (
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
               <p className="text-xs font-bold text-gray-600 mb-2">Account demo:</p>
