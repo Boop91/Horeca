@@ -336,10 +336,11 @@ function Show-Header {
     $port = 3000
     if ($st -and $st.port) { $port = [int]$st.port }
 
+    Clear-Host
     Write-Host ""
-    Write-Host "  ======================================" -ForegroundColor Yellow
-    Write-Host "    BIANCHIPRO RESTYLING - PANNELLO" -ForegroundColor Yellow
-    Write-Host "  ======================================" -ForegroundColor Yellow
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    Write-Host "        HORECA - PANNELLO CONTROLLO" -ForegroundColor White
+    Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  Cartella : $root" -ForegroundColor DarkGray
     Write-Host "  Locale   : http://127.0.0.1:$port" -ForegroundColor Cyan
@@ -363,14 +364,14 @@ function Show-Header {
     }
 
     Write-Host ""
-    Write-Host "  1 = Avvia locale" -ForegroundColor White
-    Write-Host "  2 = Condividi online (link pubblico)" -ForegroundColor White
-    Write-Host "  3 = Chiudi tutto" -ForegroundColor White
-    Write-Host "  4 = Apri locale nel browser" -ForegroundColor White
-    Write-Host "  5 = Apri link online nel browser" -ForegroundColor White
-    Write-Host "  6 = Vedi log" -ForegroundColor White
-    Write-Host "  7 = Ripara PostCSS (BOM)" -ForegroundColor White
-    Write-Host "  Q = Esci" -ForegroundColor White
+    Write-Host "  [1] Avvia locale" -ForegroundColor Green
+    Write-Host "  [2] Condividi online (link pubblico)" -ForegroundColor Magenta
+    Write-Host "  [3] Chiudi tutto" -ForegroundColor Red
+    Write-Host "  [4] Apri locale nel browser" -ForegroundColor Cyan
+    Write-Host "  [5] Apri link online nel browser" -ForegroundColor DarkCyan
+    Write-Host "  [6] Vedi log" -ForegroundColor Yellow
+    Write-Host "  [7] Ripara PostCSS (BOM)" -ForegroundColor DarkYellow
+    Write-Host "  [Q] Esci" -ForegroundColor Gray
     Write-Host ""
 }
 

@@ -207,6 +207,69 @@ app.post("/make-server-d9742687/create-payment-intent", async (c) => {
   }
 });
 
+
+async function sendEmailViaResend({ to, subject, html }: { to: string; subject: string; html: string }) {
+  const apiKey = Deno.env.get('RESEND_API_KEY');
+  const from = Deno.env.get('MAIL_FROM') || 'Bianchi Pro <noreply@bianchipro.it>';
+
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY non configurata');
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from, to: [to], subject, html }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.message || 'Errore invio email');
+  }
+
+  return payload;
+}
+
+app.post('/make-server-d9742687/send-verification-email', async (c) => {
+  try {
+    const { email } = await c.req.json();
+    if (!email) return c.json({ error: 'Email obbligatoria' }, 400);
+
+    const verifyLink = `${c.req.header('origin') || 'https://bianchipro.it'}/?verify=${encodeURIComponent(email)}`;
+    const result = await sendEmailViaResend({
+      to: email,
+      subject: 'Conferma il tuo account Bianchi Pro',
+      html: `<h2>Conferma email</h2><p>Clicca per confermare il tuo account:</p><p><a href="${verifyLink}" style="padding:10px 16px;background:#047857;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;">Conferma email</a></p>`,
+    });
+
+    return c.json({ success: true, id: result.id });
+  } catch (error) {
+    console.error('❌ Errore invio verifica email:', error);
+    return c.json({ error: error.message || 'Errore invio verifica email' }, 500);
+  }
+});
+
+app.post('/make-server-d9742687/send-reset-password-email', async (c) => {
+  try {
+    const { email, temporaryPassword } = await c.req.json();
+    if (!email || !temporaryPassword) return c.json({ error: 'Email e temporaryPassword obbligatori' }, 400);
+
+    const result = await sendEmailViaResend({
+      to: email,
+      subject: 'Recupero password Bianchi Pro',
+      html: `<h2>Recupero password</h2><p>La tua password temporanea è:</p><p style="font-size:20px;font-weight:700;">${temporaryPassword}</p><p>Accedi e cambiala subito dal tuo profilo.</p>`,
+    });
+
+    return c.json({ success: true, id: result.id });
+  } catch (error) {
+    console.error('❌ Errore invio recupero password:', error);
+    return c.json({ error: error.message || 'Errore invio recupero password' }, 500);
+  }
+});
+
 // Webhook Stripe (per confermare pagamenti)
 app.post("/make-server-d9742687/stripe-webhook", async (c) => {
   try {
