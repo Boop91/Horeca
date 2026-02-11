@@ -117,25 +117,13 @@ export default function Header({ cartItemCount, onCartClick, favoritesCount, onF
                     onAccountClick();
                   }
                 }}
-                className={`relative flex items-center justify-center transition-colors p-2 rounded-full ring-1 ${
-                  user
-                    ? (isPro
-                      ? 'text-amber-700 hover:bg-amber-50 ring-amber-200'
-                      : isAdmin
-                        ? 'text-slate-700 hover:bg-slate-100 ring-slate-300'
-                        : 'text-emerald-700 hover:bg-emerald-50 ring-emerald-200')
-                    : 'text-slate-700 hover:text-slate-900 ring-slate-300'
+                className={`relative flex items-center justify-center transition-colors p-1.5 rounded-full ${
+                  user ? (isPro ? 'text-amber-600 hover:bg-amber-50' : isAdmin ? 'text-slate-700 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50') : 'text-slate-700 hover:text-slate-900'
                 }`}
                 aria-label="Account"
               >
                 <User className="w-5 h-5" />
-                {user && (
-                  <span className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold ring-2 ring-white ${
-                    isPro ? 'bg-amber-500' : isAdmin ? 'bg-slate-700' : 'bg-emerald-500'
-                  }`}>
-                    {(user.name || '?').trim().charAt(0).toUpperCase() || '?'}
-                  </span>
-                )}
+                {user && <span className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />}
               </button>
 
               {/* User Dropdown Menu */}
