@@ -117,20 +117,13 @@ export default function Header({ cartItemCount, onCartClick, favoritesCount, onF
                     onAccountClick();
                   }
                 }}
-                className={`flex items-center gap-1.5 transition-colors p-1.5 rounded-full ${
+                className={`relative flex items-center justify-center transition-colors p-1.5 rounded-full ${
                   user ? (isPro ? 'text-amber-600 hover:bg-amber-50' : isAdmin ? 'text-slate-700 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50') : 'text-slate-700 hover:text-slate-900'
                 }`}
                 aria-label="Account"
               >
-                {user ? (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                    isPro ? 'bg-amber-500' : isAdmin ? 'bg-slate-700' : 'bg-emerald-500'
-                  }`}>
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                ) : (
-                  <User className="w-5 h-5" />
-                )}
+                <User className="w-5 h-5" />
+                {user && <span className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />}
               </button>
 
               {/* User Dropdown Menu */}
