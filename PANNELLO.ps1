@@ -370,9 +370,9 @@ function Show-Header {
 
     Clear-Host
     Write-Host ""
-    Write-Host "  ╔══════════════════════════════════════════════════════╗" -ForegroundColor DarkCyan
-    Write-Host "  ║                  $($ProjectName.ToUpper()) CONTROL PANEL                 ║" -ForegroundColor Cyan
-    Write-Host "  ╚══════════════════════════════════════════════════════╝" -ForegroundColor DarkCyan
+    Write-Host "  ======================================================" -ForegroundColor DarkCyan
+    Write-Host "            $($ProjectName.ToUpper()) CONTROL PANEL" -ForegroundColor Cyan
+    Write-Host "  ======================================================" -ForegroundColor DarkCyan
     Write-Host ""
     Write-Host "  Percorso : $root" -ForegroundColor DarkGray
     if ($root -ne $ExpectedRoot) {
