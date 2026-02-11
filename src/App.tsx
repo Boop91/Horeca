@@ -20,6 +20,7 @@ import AuthModal from './components/auth/AuthModal';
 import WalletPage from './components/wallet/WalletPage';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AccountPage from './components/auth/AccountPage';
+import HomePage from './components/HomePage';
 
 interface CartItem {
   id: string;
@@ -39,7 +40,7 @@ interface FavoriteItem {
   brand: string;
 }
 
-type AppPage = 'home' | 'wallet' | 'admin' | 'account';
+type AppPage = 'home' | 'product' | 'wallet' | 'admin' | 'account';
 
 function AppContent() {
   const { user } = useAuth();
@@ -263,6 +264,10 @@ function AppContent() {
       />
 
       {currentPage === 'home' && (
+        <HomePage onOpenProduct={() => setCurrentPage('product')} />
+      )}
+
+      {currentPage === 'product' && (
         <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 py-8 mb-20">
           {/* Breadcrumb */}
           <nav className="flex items-center space-x-2 text-sm mb-8">

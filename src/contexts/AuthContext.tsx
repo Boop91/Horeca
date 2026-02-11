@@ -61,6 +61,7 @@ interface AuthContextType {
   register: (data: RegisterData) => { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
   resendVerificationEmail: (email: string) => { success: boolean; error?: string };
   verifyEmail: (email: string) => { success: boolean; error?: string };
+  requestPasswordReset: (email: string) => { success: boolean; error?: string; temporaryPassword?: string };
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   addWalletTransaction: (transaction: Omit<WalletTransaction, 'id' | 'date'>) => void;
@@ -88,6 +89,10 @@ const SESSION_KEY = 'bianchipro_session';
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function generateTemporaryPassword(): string {
+  return `Tmp-${Math.random().toString(36).slice(2, 6)}${Math.floor(100 + Math.random() * 900)}`;
 }
 
 function generateReferralCode(name: string): string {
@@ -254,6 +259,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         : u
     ));
     return { success: true };
+  };
+
+
+  const requestPasswordReset = (email: string) => {
+    const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!target) return { success: false, error: 'Email non trovata' };
+
+    const temporaryPassword = generateTemporaryPassword();
+    setUsers(prev => prev.map(u =>
+      u.id === target.id
+        ? { ...u, password: temporaryPassword }
+        : u
+    ));
+
+    return { success: true, temporaryPassword };
   };
 
   const logout = () => {
@@ -435,6 +455,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       resendVerificationEmail,
       verifyEmail,
+      requestPasswordReset,
       logout,
       updateUser,
       addWalletTransaction,
