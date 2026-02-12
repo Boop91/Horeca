@@ -21,6 +21,8 @@ import WalletPage from './components/wallet/WalletPage';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AccountPage from './components/auth/AccountPage';
 import HomePage from './components/HomePage';
+import CategoryPage from './components/CategoryPage';
+import { catalogMenu } from './data/catalogMenu';
 
 interface CartItem {
   id: string;
@@ -40,7 +42,7 @@ interface FavoriteItem {
   brand: string;
 }
 
-type AppPage = 'home' | 'product' | 'wallet' | 'admin' | 'account';
+type AppPage = 'home' | 'category' | 'product' | 'wallet' | 'admin' | 'account';
 
 function AppContent() {
   const { user } = useAuth();
@@ -48,6 +50,7 @@ function AppContent() {
   // Navigation state
   const [currentPage, setCurrentPage] = useState<AppPage>('home');
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [selectedCategoryKey, setSelectedCategoryKey] = useState(catalogMenu[0]?.key || 'linea-caldo');
 
   // Product configuration state
   const [quantity, setQuantity] = useState(1);
@@ -261,10 +264,18 @@ function AppContent() {
         user={user}
         currentPage={currentPage}
         onNavigate={handleNavigate}
+        onCategorySelect={(key) => { setSelectedCategoryKey(key); setCurrentPage('category'); }}
       />
 
       {currentPage === 'home' && (
         <HomePage onOpenProduct={() => setCurrentPage('product')} />
+      )}
+
+      {currentPage === 'category' && (
+        <CategoryPage
+          category={catalogMenu.find((c) => c.key === selectedCategoryKey) || catalogMenu[0]}
+          onOpenProduct={() => setCurrentPage('product')}
+        />
       )}
 
       {currentPage === 'product' && (

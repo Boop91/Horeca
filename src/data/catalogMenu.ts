@@ -118,4 +118,16 @@ export const catalogMenu: CatalogMenuItem[] = [
       },
     ],
   },
+  {
+    key: 'seconda-scelta',
+    label: 'Seconda Scelta',
+    groups: [
+      {
+        title: 'Seconda Scelta',
+        sections: [
+          { title: 'Prodotti disponibili', items: ['Seconda scelta professionale'] },
+        ],
+      },
+    ],
+  },
 ];
