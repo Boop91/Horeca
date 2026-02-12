@@ -1,7 +1,7 @@
 param([string]$Azione = "MENU")
 
 # ============================================================
-# PANNELLO BianchiPro Restyling
+# PANNELLO Horeca
 # Pannello unico per avvio locale, condivisione online, chiusura
 # Compatibile con Windows PowerShell 5.1 (niente ??, niente &&)
 # Nessun uso di $pid (variabile riservata PowerShell)
@@ -9,7 +9,11 @@ param([string]$Azione = "MENU")
 # ============================================================
 
 $ErrorActionPreference = "Stop"
-$root      = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectName = "Horeca"
+$ExpectedRoot = "C:\Users\Feder\Desktop\Horeca"
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$root = $scriptRoot
+if (Test-Path $ExpectedRoot) { $root = $ExpectedRoot }
 $stateFile = Join-Path $root "_STATE.json"
 $logDir    = Join-Path $root "_LOG"
 $urlFile   = Join-Path $root "URL_ONLINE.txt"
@@ -21,6 +25,36 @@ if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out
 function T([string]$msg, [string]$color = "Cyan") {
     $ts = (Get-Date).ToString("HH:mm:ss")
     Write-Host "[$ts] $msg" -ForegroundColor $color
+}
+
+function Read-SingleKey([string]$prompt, [string]$defaultValue = "", [string[]]$valid = @()) {
+    if ($prompt) {
+        Write-Host -NoNewline $prompt -ForegroundColor Gray
+    }
+
+    while ($true) {
+        $keyInfo = [Console]::ReadKey($true)
+        $k = $keyInfo.KeyChar
+        if ([char]::IsControl($k)) {
+            continue
+        }
+
+        $value = ([string]$k).Trim().ToUpper()
+        if (-not $value) {
+            if ($defaultValue) {
+                Write-Host $defaultValue -ForegroundColor White
+                return $defaultValue.ToUpper()
+            }
+            continue
+        }
+
+        if ($valid.Count -eq 0 -or $valid -contains $value) {
+            Write-Host $value -ForegroundColor White
+            return $value
+        }
+
+        [Console]::Beep(900,120)
+    }
 }
 
 function Save-State($obj) {
@@ -116,7 +150,7 @@ function Fix-PostCss {
 # --- Azioni principali ---
 
 function Stop-All {
-    T "Chiusura totale (BianchiPro)..." "Yellow"
+    T "Chiusura totale ($ProjectName)..." "Yellow"
 
     $st = Load-State
     if ($st) {
@@ -303,9 +337,7 @@ function Show-Log {
     Write-Host "  3 = Cloudflared (stdout)" -ForegroundColor Yellow
     Write-Host "  4 = Cloudflared (stderr)" -ForegroundColor Yellow
     Write-Host ""
-    $c = Read-Host "Scelta"
-    if ($c -eq $null) { $c = "" }
-    $c = $c.Trim()
+    $c = Read-SingleKey "Scelta (premi 1/2/3/4): " "" @("1", "2", "3", "4")
 
     $map = @{
         "1" = (Join-Path $logDir "vite_out.log")
@@ -342,7 +374,10 @@ function Show-Header {
     Write-Host "        HORECA - PANNELLO CONTROLLO" -ForegroundColor White
     Write-Host "  ============================================" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Cartella : $root" -ForegroundColor DarkGray
+    Write-Host "  Percorso : $root" -ForegroundColor DarkGray
+    if ($root -ne $ExpectedRoot) {
+        Write-Host "  Nota     : percorso atteso non trovato, uso cartella script." -ForegroundColor Yellow
+    }
     Write-Host "  Locale   : http://127.0.0.1:$port" -ForegroundColor Cyan
 
     if (Test-Path $urlFile) {
@@ -373,14 +408,13 @@ function Show-Header {
     Write-Host "  [7] Ripara PostCSS (BOM)" -ForegroundColor DarkYellow
     Write-Host "  [Q] Esci" -ForegroundColor Gray
     Write-Host ""
+    Write-Host "  Suggerimento: premi direttamente il tasto (senza Invio)." -ForegroundColor DarkGray
 }
 
 function Run-Menu {
     while ($true) {
         Show-Header
-        $k = Read-Host "Scelta"
-        if ($k -eq $null) { $k = "" }
-        $k = $k.Trim().ToUpper()
+        $k = Read-SingleKey "Scelta rapida: " "" @("1", "2", "3", "4", "5", "6", "7", "Q")
 
         try {
             if ($k -eq "1") { Start-Local; continue }

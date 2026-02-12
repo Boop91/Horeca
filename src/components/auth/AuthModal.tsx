@@ -124,6 +124,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     await postEmailApi('send-verification-email', { email: targetEmail });
     setInfo(`Ti abbiamo inviato una nuova email di conferma a ${targetEmail}. Controlla anche Spam/Promozioni.`);
     setError('');
+    setInfo('');
+    setPendingVerificationEmail('');
   };
 
   const handleConfirmVerified = () => {
