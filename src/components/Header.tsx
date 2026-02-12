@@ -126,19 +126,19 @@ export default function Header({ cartItemCount, onCartClick, favoritesCount, onF
         </div>
       </div>
 
-      <nav className="border-y border-slate-200 bg-white">
+      <nav className="border-y border-slate-200 bg-white" onMouseLeave={() => setActiveCatalogKey(null)}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ul className="hidden md:flex items-center justify-center gap-1 py-2 overflow-x-auto">
             {catalogMenu.map(({ key, label }) => {
               const Icon = iconByKey[key as keyof typeof iconByKey] || Package;
               const isActive = activeCatalogKey === key;
               return (
-                <li key={key}>
+                <li key={key} onMouseEnter={() => setActiveCatalogKey(key)}>
                   <button
                     type="button"
                     onClick={() => {
                       onCategorySelect(key);
-                      setActiveCatalogKey((prev) => prev === key ? null : key);
+                      setActiveCatalogKey(key);
                     }}
                     className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${isActive ? 'bg-slate-900 text-white' : 'text-slate-800 hover:bg-slate-100'}`}
                   >
@@ -155,21 +155,21 @@ export default function Header({ cartItemCount, onCartClick, favoritesCount, onF
       <div className="h-1 bg-teal-700" />
 
       {activeCatalog && (
-        <div className="hidden md:block border-t border-slate-200 bg-white shadow-lg">
+        <div className="hidden md:block border-t border-slate-700 bg-slate-800 shadow-lg">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-            <h3 className="text-sm font-bold text-slate-900">{activeCatalog.label}</h3>
+            <h3 className="text-sm font-bold text-emerald-300">{activeCatalog.label}</h3>
             <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {activeCatalog.groups.flatMap(group => group.sections).map(section => (
                 <button
                   key={section.title}
                   type="button"
                   onClick={() => onCategorySelect(activeCatalog.key)}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left hover:border-emerald-300 hover:bg-emerald-50"
+                  className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-left hover:border-emerald-500 hover:bg-slate-900"
                 >
-                  <p className="text-sm font-semibold text-slate-800">{section.title}</p>
+                  <p className="text-sm font-semibold text-emerald-200">{section.title}</p>
                   <ul className="mt-2 space-y-1">
                     {section.items.slice(0, 6).map(item => (
-                      <li key={item} className="text-xs text-slate-600">• {item}</li>
+                      <li key={item} className="text-xs text-slate-200">• {item}</li>
                     ))}
                   </ul>
                 </button>
