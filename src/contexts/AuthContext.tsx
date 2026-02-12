@@ -50,13 +50,18 @@ export interface User {
   withdrawalRequests: WithdrawalRequest[];
   // Stripe
   stripeCustomerId?: string;
+  emailVerified?: boolean;
+  verificationSentAt?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   allUsers: User[];
-  login: (email: string, password: string) => { success: boolean; error?: string };
-  register: (data: RegisterData) => { success: boolean; error?: string };
+  login: (email: string, password: string) => { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
+  register: (data: RegisterData) => { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
+  resendVerificationEmail: (email: string) => { success: boolean; error?: string };
+  verifyEmail: (email: string) => { success: boolean; error?: string };
+  requestPasswordReset: (email: string) => { success: boolean; error?: string; temporaryPassword?: string };
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   addWalletTransaction: (transaction: Omit<WalletTransaction, 'id' | 'date'>) => void;
@@ -86,6 +91,10 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function generateTemporaryPassword(): string {
+  return `Tmp-${Math.random().toString(36).slice(2, 6)}${Math.floor(100 + Math.random() * 900)}`;
+}
+
 function generateReferralCode(name: string): string {
   const prefix = name.replace(/\s+/g, '').slice(0, 4).toUpperCase();
   const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -95,7 +104,13 @@ function generateReferralCode(name: string): string {
 function loadUsers(): (User & { password: string })[] {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const parsed = JSON.parse(data) as (User & { password: string })[];
+      return parsed.map(u => ({
+        ...u,
+        emailVerified: typeof u.emailVerified === 'boolean' ? u.emailVerified : true,
+      }));
+    }
   } catch { /* empty */ }
 
   // Seed admin account
@@ -110,6 +125,7 @@ function loadUsers(): (User & { password: string })[] {
     walletBalance: 0,
     walletTransactions: [],
     withdrawalRequests: [],
+    emailVerified: true,
   };
 
   const demoClient: User & { password: string } = {
@@ -126,6 +142,7 @@ function loadUsers(): (User & { password: string })[] {
       { id: 'tx-2', type: 'withdrawal', amount: -50, description: 'Pagamento ordine #ORD-001', date: new Date(Date.now() - 86400000 * 2).toISOString(), status: 'completed' },
     ],
     withdrawalRequests: [],
+    emailVerified: true,
   };
 
   const demoPro: User & { password: string } = {
@@ -146,6 +163,7 @@ function loadUsers(): (User & { password: string })[] {
       { id: 'tx-p2', type: 'deposit', amount: 50, description: 'Ricarica wallet con carta', date: new Date(Date.now() - 86400000 * 7).toISOString(), status: 'completed' },
     ],
     withdrawalRequests: [],
+    emailVerified: true,
   };
 
   const users = [admin, demoClient, demoPro];
@@ -182,6 +200,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (email: string, password: string) => {
     const found = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     if (!found) return { success: false, error: 'Email o password non corretti' };
+    if (found.role !== 'admin' && !found.emailVerified) {
+      return {
+        success: false,
+        error: 'Devi confermare la tua email prima di accedere.',
+        requiresEmailVerification: true,
+        email: found.email,
+      };
+    }
     setCurrentUserId(found.id);
     return { success: true };
   };
@@ -201,14 +227,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       walletBalance: 0,
       walletTransactions: [],
       withdrawalRequests: [],
+      emailVerified: false,
+      verificationSentAt: new Date().toISOString(),
       ...(data.role === 'pro' ? {
         referralCode: generateReferralCode(data.name),
         referralUsages: [],
       } : {}),
     };
     setUsers(prev => [...prev, newUser]);
-    setCurrentUserId(newUser.id);
+    return { success: true, requiresEmailVerification: true, email: newUser.email };
+  };
+
+
+  const resendVerificationEmail = (email: string) => {
+    const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!target) return { success: false, error: 'Utente non trovato' };
+    setUsers(prev => prev.map(u =>
+      u.id === target.id
+        ? { ...u, verificationSentAt: new Date().toISOString() }
+        : u
+    ));
     return { success: true };
+  };
+
+  const verifyEmail = (email: string) => {
+    const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!target) return { success: false, error: 'Utente non trovato' };
+    setUsers(prev => prev.map(u =>
+      u.id === target.id
+        ? { ...u, emailVerified: true }
+        : u
+    ));
+    return { success: true };
+  };
+
+
+  const requestPasswordReset = (email: string) => {
+    const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!target) return { success: false, error: 'Email non trovata' };
+
+    const temporaryPassword = generateTemporaryPassword();
+    setUsers(prev => prev.map(u =>
+      u.id === target.id
+        ? { ...u, password: temporaryPassword }
+        : u
+    ));
+
+    return { success: true, temporaryPassword };
   };
 
   const logout = () => {
@@ -388,6 +453,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       allUsers: allUsers.map(u => ({ ...u, password: undefined } as unknown as User)),
       login,
       register,
+      resendVerificationEmail,
+      verifyEmail,
+      requestPasswordReset,
       logout,
       updateUser,
       addWalletTransaction,
