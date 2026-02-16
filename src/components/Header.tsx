@@ -86,9 +86,16 @@ export default function Header({
       <div className="bg-white border-b border-gray-200">
         <div className="mx-auto flex max-w-[1260px] items-center justify-between gap-6 px-5 py-3">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-white text-sm font-black leading-none">B</span>
+          {/* Logo B. con arco tricolore */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity">
+            <div className="relative w-10 h-10 flex items-center justify-center">
+              <svg viewBox="0 0 40 40" className="absolute inset-0 w-full h-full">
+                <path d="M8 28 A14 14 0 0 1 20 6" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" />
+                <path d="M20 6 A14 14 0 0 1 26 8" fill="none" stroke="#e5e7eb" strokeWidth="3" strokeLinecap="round" />
+                <path d="M26 8 A14 14 0 0 1 32 14" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              <span className="text-xl font-black text-gray-900">B.</span>
+            </div>
             <span className="text-[22px] font-black tracking-tight text-gray-900">BIANCHI</span>
           </Link>
 
