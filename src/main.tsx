@@ -20,7 +20,8 @@
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
-import './index.css'; // Stili globali e design tokens
+import './index.css'; // Utility CSS Tailwind (pre-compilato)
+import './styles/globals.css'; // Design tokens, DM Sans, stili base
 
 // Monta l'applicazione React nel DOM.
 // L'operatore `!` (non-null assertion) garantisce a TypeScript che l'elemento esiste.

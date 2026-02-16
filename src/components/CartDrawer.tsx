@@ -37,6 +37,16 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quote, setQuote] = useState({ subtotal: 0, vat: 0, total: 0 });
 
+  /* Blocca lo scroll del body quando il drawer è espanso */
+  useEffect(() => {
+    if (isExpanded) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isExpanded]);
+
   const normalizedItems = useMemo(
     () =>
       items.map((item) => ({
@@ -114,7 +124,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
               <div className="relative">
                 <ShoppingCart className="w-5 h-5 text-gray-700" />
                 {!isEmpty && (
-                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                     {totalItems}
                   </span>
                 )}
@@ -142,7 +152,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
             <button
               type="button"
               onClick={() => setCheckoutOpen(true)}
-              className="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white font-extrabold rounded-lg transition-colors"
+              className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-lg transition-colors"
             >
               Procedi al pagamento · € {formatPrice(quote.total)}
             </button>
@@ -150,7 +160,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
         </div>
       </div>
 
-      <div className={`fixed inset-0 z-50 transition-all duration-300 ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-[100] transition-all duration-300 ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div
           className={`absolute inset-0 bg-black transition-opacity duration-300 ${isExpanded ? 'opacity-50' : 'opacity-0'}`}
           onClick={() => setIsExpanded(false)}
@@ -166,7 +176,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
               <div className="relative">
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
                 {!isEmpty && (
-                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
@@ -189,7 +199,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
               <button
                 type="button"
                 onClick={() => setIsExpanded(false)}
-                className="py-3 px-6 rounded-lg bg-green-500 text-white font-extrabold text-sm hover:bg-green-600 transition-colors"
+                className="py-3 px-6 rounded-lg bg-green-600 text-white font-extrabold text-sm hover:bg-green-700 transition-colors"
               >
                 Continua lo shopping
               </button>
@@ -286,7 +296,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
                   <button
                     type="button"
                     onClick={() => setCheckoutOpen(true)}
-                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-extrabold rounded-lg transition-colors"
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-lg transition-colors"
                   >
                     Procedi al pagamento
                   </button>

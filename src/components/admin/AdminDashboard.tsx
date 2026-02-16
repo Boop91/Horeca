@@ -41,7 +41,7 @@ const ORDER_STATUSES: Record<string, OrderStatus> = {
   confermato: { key: 'confermato', label: 'Confermato', color: 'text-green-800', bg: 'bg-green-100' },
   in_lavorazione: { key: 'in_lavorazione', label: 'In lavorazione', color: 'text-amber-800', bg: 'bg-amber-100' },
   spedito: { key: 'spedito', label: 'Spedito', color: 'text-purple-800', bg: 'bg-purple-100' },
-  consegnato: { key: 'consegnato', label: 'Consegnato', color: 'text-emerald-800', bg: 'bg-emerald-100' },
+  consegnato: { key: 'consegnato', label: 'Consegnato', color: 'text-green-800', bg: 'bg-green-100' },
   annullato: { key: 'annullato', label: 'Annullato', color: 'text-red-800', bg: 'bg-red-100' },
 };
 
@@ -133,7 +133,7 @@ function KpiCard({ label, value, icon: Icon, trend, trendUp, color }: {
           <Icon className="w-5 h-5" />
         </div>
         {trend && (
-          <span className={`inline-flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-green-600' : 'text-red-500'}`}>
+          <span className={`inline-flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-green-700' : 'text-red-500'}`}>
             {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
             {trend}
           </span>
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
                 <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm">
                   <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 className="font-bold text-gray-900">Ordini recenti</h3>
-                    <button onClick={() => setActiveTab('ordini')} className="text-xs font-semibold text-green-600 hover:text-green-700 flex items-center gap-1">
+                    <button onClick={() => setActiveTab('ordini')} className="text-xs font-semibold text-green-700 hover:text-green-700 flex items-center gap-1">
                       Vedi tutti <ChevronRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -617,7 +617,7 @@ export default function AdminDashboard() {
                           <td className="px-5 py-3">
                             <div className="flex items-center gap-1">
                               {q.stato === 'in_attesa' && (
-                                <button className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg text-xs font-semibold" title="Approva">
+                                <button className="p-1.5 text-green-700 hover:bg-green-50 rounded-lg text-xs font-semibold" title="Approva">
                                   <Check className="w-4 h-4" />
                                 </button>
                               )}
@@ -834,11 +834,11 @@ export default function AdminDashboard() {
                       <input type="text" value={stripeKey} onChange={e => { setStripeKey(e.target.value); setStripeSaved(false); }}
                         placeholder="pk_test_..." className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none font-mono" />
                       <button onClick={() => { if (stripeKey.trim()) { persistStripePublishableKey(stripeKey.trim()); setStripeSaved(true); setTimeout(() => setStripeSaved(false), 3000); } }}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white font-bold text-sm rounded-xl hover:bg-green-600 transition-colors">
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-bold text-sm rounded-xl hover:bg-green-700 transition-colors">
                         <Save className="w-4 h-4" /> Salva
                       </button>
                     </div>
-                    {stripeSaved && <p className="mt-1.5 text-sm text-green-600 font-semibold flex items-center gap-1.5"><CheckCircle className="w-4 h-4" /> Salvata</p>}
+                    {stripeSaved && <p className="mt-1.5 text-sm text-green-700 font-semibold flex items-center gap-1.5"><CheckCircle className="w-4 h-4" /> Salvata</p>}
                   </div>
                   <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
                     <p className="text-xs text-amber-800">
@@ -876,7 +876,7 @@ export default function AdminDashboard() {
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-green-600" />
+                    <Globe className="w-5 h-5 text-green-700" />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">Supabase — Database e Auth</h3>
@@ -891,8 +891,8 @@ export default function AdminDashboard() {
                     Piano Free: 50.000 utenti, 500MB database, 1GB storage — perfetto per il test.
                   </p>
                   <div className="bg-white rounded-lg p-3 font-mono text-xs space-y-1">
-                    <p><span className="text-green-600">VITE_SUPABASE_URL</span> = https://xxx.supabase.co</p>
-                    <p><span className="text-green-600">VITE_SUPABASE_ANON_KEY</span> = eyJ...</p>
+                    <p><span className="text-green-700">VITE_SUPABASE_URL</span> = https://xxx.supabase.co</p>
+                    <p><span className="text-green-700">VITE_SUPABASE_ANON_KEY</span> = eyJ...</p>
                   </div>
                 </div>
               </div>
@@ -915,7 +915,7 @@ export default function AdminDashboard() {
                     <p className="text-xs text-gray-500">Accesso completo</p>
                   </div>
                   <div className="border border-gray-200 rounded-lg p-3">
-                    <Users className="w-5 h-5 text-green-600 mb-1" />
+                    <Users className="w-5 h-5 text-green-700 mb-1" />
                     <p className="text-sm font-bold text-gray-900">Cliente B2B</p>
                     <p className="text-xs text-gray-500">Ordini, fatture, profilo</p>
                   </div>

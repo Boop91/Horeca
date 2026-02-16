@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { X, CreditCard, Lock, Loader2 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -106,14 +106,14 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
         <h3 className="font-bold text-gray-900 text-lg">Dati di Fatturazione</h3>
-        <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 text-base" placeholder="Nome e Cognome *" required />
-        <input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 text-base" placeholder="Email *" required />
-        <input type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 text-base" placeholder="Telefono *" required />
-        <textarea value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 text-base resize-none" placeholder="Indirizzo di spedizione" rows={2} />
+        <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base" placeholder="Nome e Cognome *" required />
+        <input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base" placeholder="Email *" required />
+        <input type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base" placeholder="Telefono *" required />
+        <textarea value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base resize-none" placeholder="Indirizzo di spedizione" rows={2} />
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="font-bold text-gray-900 text-lg mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5 text-green-600" />Metodo di Pagamento</h3>
+        <h3 className="font-bold text-gray-900 text-lg mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5 text-green-700" />Metodo di Pagamento</h3>
         <PaymentElement />
       </div>
 
@@ -124,7 +124,7 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
           <span className="text-lg font-bold text-gray-900">Totale da pagare:</span>
           <span className="text-2xl font-black text-green-700">€ {total.toFixed(2)}</span>
         </div>
-        <button type="submit" disabled={!stripe || loading} className="w-full bg-green-600 text-white font-black text-lg py-4 rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg">
+        <button type="submit" disabled={!stripe || loading} className="w-full bg-green-700 text-white font-black text-lg py-4 rounded-xl hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg">
           {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Elaborazione...</> : <><Lock className="w-5 h-5" /> PAGA ORA € {total.toFixed(2)}</>}
         </button>
         <p className="text-xs text-gray-600 text-center mt-2">🔒 Pagamento sicuro protetto da Stripe</p>
@@ -139,6 +139,16 @@ export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localKeyInput, setLocalKeyInput] = useState('');
+
+  /* Blocca lo scroll del body quando il modal è aperto */
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   const stripePromise = useMemo(() => {
     if (!publishableKey || publishableKey === 'pk_test_INSERISCI_QUI_LA_TUA_PUBLISHABLE_KEY') return null;
@@ -171,7 +181,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b-2 border-gray-200 p-4 flex items-center justify-between z-10">
           <h2 className="text-2xl font-black text-gray-900">Completa il Pagamento</h2>
@@ -192,7 +202,7 @@ export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess
 
           {stripePromise && loading && !clientSecret && (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
+              <Loader2 className="w-12 h-12 text-green-700 animate-spin mb-4" />
               <p className="text-lg font-semibold text-gray-700">Inizializzazione pagamento...</p>
             </div>
           )}

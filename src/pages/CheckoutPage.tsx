@@ -51,7 +51,7 @@ export default function CheckoutPage() {
       <main className="max-w-4xl mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Carrello vuoto</h1>
         <p className="text-gray-600 mb-6">Aggiungi prodotti prima di procedere al checkout.</p>
-        <Link to="/" className="px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700">
+        <Link to="/" className="px-6 py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700">
           Torna al catalogo
         </Link>
       </main>
@@ -68,7 +68,7 @@ export default function CheckoutPage() {
           <div key={step.key} className="flex items-center gap-2">
             <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
               i === currentStepIndex
-                ? 'bg-green-600 text-white'
+                ? 'bg-green-700 text-white'
                 : i < currentStepIndex
                   ? 'bg-green-100 text-green-700'
                   : 'bg-gray-100 text-gray-400'
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ragione Sociale *</label>
                   <input type="text" value={ragioneSociale} onChange={e => setRagioneSociale(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
                     placeholder="Es. Ristorante Da Mario S.r.l." />
                 </div>
                 <div>
@@ -99,7 +99,7 @@ export default function CheckoutPage() {
                   <div className="flex">
                     <span className="inline-flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-sm text-gray-600 font-medium">IT</span>
                     <input type="text" value={partitaIva} onChange={e => setPartitaIva(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
                       placeholder="12345678901" maxLength={11} />
                   </div>
                   {partitaIva && !validatePartitaIva(partitaIva) && (
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Codice Fiscale</label>
                   <input type="text" value={codiceFiscale} onChange={e => setCodiceFiscale(e.target.value.toUpperCase().slice(0, 16))}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
                     placeholder="RSSMRA80A01H501U" maxLength={16} />
                 </div>
 
@@ -119,25 +119,25 @@ export default function CheckoutPage() {
                   <div className="flex gap-4 mb-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="radio" checked={!usePec} onChange={() => setUsePec(false)}
-                        className="text-green-600 focus:ring-green-500" />
+                        className="text-green-700 focus:ring-green-600" />
                       <span className="text-sm font-medium">Codice Destinatario</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="radio" checked={usePec} onChange={() => setUsePec(true)}
-                        className="text-green-600 focus:ring-green-500" />
+                        className="text-green-700 focus:ring-green-600" />
                       <span className="text-sm font-medium">PEC</span>
                     </label>
                   </div>
                   {!usePec ? (
                     <div>
                       <input type="text" value={codiceSDI} onChange={e => setCodiceSDI(e.target.value.toUpperCase().slice(0, 7))}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
                         placeholder="0000000" maxLength={7} />
                       <p className="text-xs text-blue-700 mt-1">7 caratteri alfanumerici. Usa 0000000 se non conosci il tuo codice.</p>
                     </div>
                   ) : (
                     <input type="email" value={pec} onChange={e => setPec(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
                       placeholder="azienda@pec.it" />
                   )}
                 </div>
@@ -145,12 +145,12 @@ export default function CheckoutPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Telefono *</label>
                   <input type="tel" value={telefono} onChange={e => setTelefono(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
                     placeholder="+39 02 1234567" />
                 </div>
               </div>
               <button onClick={() => setCurrentStep('indirizzi')}
-                className="mt-6 w-full py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors">
+                className="mt-6 w-full py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700 transition-colors">
                 Continua
               </button>
             </div>
@@ -163,24 +163,24 @@ export default function CheckoutPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Via e numero civico *</label>
                   <input type="text" value={shippingAddress.via} onChange={e => setShippingAddress(p => ({ ...p, via: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Città *</label>
                     <input type="text" value={shippingAddress.citta} onChange={e => setShippingAddress(p => ({ ...p, citta: e.target.value }))}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">CAP *</label>
                       <input type="text" value={shippingAddress.cap} onChange={e => setShippingAddress(p => ({ ...p, cap: e.target.value.slice(0, 5) }))}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" maxLength={5} />
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" maxLength={5} />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Prov. *</label>
                       <input type="text" value={shippingAddress.provincia} onChange={e => setShippingAddress(p => ({ ...p, provincia: e.target.value.toUpperCase().slice(0, 2) }))}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" maxLength={2} />
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" maxLength={2} />
                     </div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function CheckoutPage() {
 
               <label className="flex items-center gap-2 mt-6 cursor-pointer">
                 <input type="checkbox" checked={sameAsShipping} onChange={e => setSameAsShipping(e.target.checked)}
-                  className="rounded text-green-600 focus:ring-green-500" />
+                  className="rounded text-green-700 focus:ring-green-600" />
                 <span className="text-sm font-medium text-gray-700">Indirizzo di fatturazione uguale a quello di spedizione</span>
               </label>
 
@@ -198,7 +198,7 @@ export default function CheckoutPage() {
                   <div className="space-y-4">
                     <input type="text" value={billingAddress.via} onChange={e => setBillingAddress(p => ({ ...p, via: e.target.value }))}
                       placeholder="Via e numero civico"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                     <div className="grid grid-cols-3 gap-4">
                       <input type="text" value={billingAddress.citta} onChange={e => setBillingAddress(p => ({ ...p, citta: e.target.value }))}
                         placeholder="Città" className="px-4 py-2.5 border border-gray-300 rounded-lg" />
@@ -217,7 +217,7 @@ export default function CheckoutPage() {
                   Indietro
                 </button>
                 <button onClick={() => setCurrentStep('pagamento')}
-                  className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700">
+                  className="flex-1 py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700">
                   Continua
                 </button>
               </div>
@@ -234,10 +234,10 @@ export default function CheckoutPage() {
                   { key: 'noleggio', label: 'Noleggio Operativo', desc: 'Rate mensili senza anticipo' },
                 ] as const).map(pm => (
                   <label key={pm.key} className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
-                    paymentMethod === pm.key ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                    paymentMethod === pm.key ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'
                   }`}>
                     <input type="radio" name="payment" checked={paymentMethod === pm.key} onChange={() => setPaymentMethod(pm.key)}
-                      className="mt-0.5 text-green-600 focus:ring-green-500" />
+                      className="mt-0.5 text-green-700 focus:ring-green-600" />
                     <div>
                       <p className="font-semibold text-gray-900">{pm.label}</p>
                       <p className="text-sm text-gray-500">{pm.desc}</p>
@@ -251,7 +251,7 @@ export default function CheckoutPage() {
                   Indietro
                 </button>
                 <button onClick={() => setCurrentStep('riepilogo')}
-                  className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700">
+                  className="flex-1 py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700">
                   Continua
                 </button>
               </div>
@@ -295,7 +295,7 @@ export default function CheckoutPage() {
                   className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50">
                   Indietro
                 </button>
-                <button className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700">
+                <button className="flex-1 py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700">
                   Conferma Ordine
                 </button>
               </div>

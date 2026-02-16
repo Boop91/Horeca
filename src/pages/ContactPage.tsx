@@ -20,7 +20,7 @@ export default function ContactPage() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
       <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-600">Home</Link>
+        <Link to="/" className="text-gray-600 hover:text-green-700">Home</Link>
         <ChevronRight className="w-4 h-4 text-gray-400" />
         <span className="text-gray-900 font-medium">Contatti</span>
       </nav>
@@ -41,7 +41,7 @@ export default function ContactPage() {
           ].map(({ icon: Icon, title, content, desc }) => (
             <div key={title} className="flex gap-4 bg-white rounded-xl border border-gray-200 p-5">
               <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon className="w-6 h-6 text-green-600" />
+                <Icon className="w-6 h-6 text-green-700" />
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">{title}</h3>
@@ -68,26 +68,26 @@ export default function ContactPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
-                  <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                  <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Azienda</label>
-                  <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                  <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input type="email" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                  <input type="email" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                  <input type="tel" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                  <input type="tel" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Oggetto</label>
-                <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600">
                   <option value="">Seleziona...</option>
                   <option value="preventivo">Richiesta preventivo</option>
                   <option value="info-prodotto">Informazioni prodotto</option>
@@ -99,9 +99,9 @@ export default function ContactPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Messaggio</label>
-                <textarea rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                <textarea rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
               </div>
-              <button type="submit" className="w-full py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors">
+              <button type="submit" className="w-full py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700 transition-colors">
                 Invia messaggio
               </button>
             </form>

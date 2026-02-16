@@ -54,10 +54,10 @@ export default function AccessoriesSection() {
         {accessories.map((accessory) => (
           <div
             key={accessory.id}
-            className="group bg-white border-2 border-gray-100 rounded-xl overflow-hidden hover:border-green-500 hover:shadow-xl transition-all"
+            className="group bg-white border-2 border-gray-100 rounded-xl overflow-hidden hover:border-green-600 hover:shadow-xl transition-all"
           >
             <div className="relative aspect-square overflow-hidden bg-gray-50">
-              <span className="absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-sm">
+              <span className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-sm">
                 {accessory.badge}
               </span>
               {accessory.discount && (
@@ -72,7 +72,7 @@ export default function AccessoriesSection() {
               />
             </div>
             <div className="p-5">
-              <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">
+              <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-green-700 transition-colors">
                 {accessory.name}
               </h3>
               <p className="text-sm text-gray-600 mb-4">{accessory.description}</p>
@@ -83,7 +83,7 @@ export default function AccessoriesSection() {
                   )}
                   <div className="text-lg font-bold text-gray-900">{accessory.price}</div>
                 </div>
-                <button className="p-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md hover:shadow-lg">
+                <button className="p-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-md hover:shadow-lg">
                   <ShoppingCart className="w-5 h-5" />
                 </button>
               </div>
@@ -93,7 +93,7 @@ export default function AccessoriesSection() {
       </div>
 
       <div className="text-center mt-8">
-        <button className="text-green-600 hover:text-green-700 font-semibold border-2 border-green-500 hover:bg-green-50 px-8 py-3 rounded-lg transition-all">
+        <button className="text-green-700 hover:text-green-700 font-semibold border-2 border-green-600 hover:bg-green-50 px-8 py-3 rounded-lg transition-all">
           Vedi Tutti gli Accessori →
         </button>
       </div>

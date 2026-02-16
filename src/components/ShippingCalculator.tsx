@@ -35,7 +35,7 @@ export default function ShippingCalculator() {
             <select 
               value={region}
               onChange={(e) => setRegion(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-gray-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-gray-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-green-600 focus:border-green-600 outline-none appearance-none"
             >
               <option value="">Seleziona regione...</option>
               {regions.map(r => <option key={r} value={r}>{r}</option>)}
@@ -52,7 +52,7 @@ export default function ShippingCalculator() {
                   key={c.id} 
                   className={`flex items-center justify-between p-2.5 rounded-xl border-2 cursor-pointer transition-all ${
                     courier === c.id 
-                      ? 'bg-green-50 border-green-500 shadow-md' 
+                      ? 'bg-green-50 border-green-600 shadow-md' 
                       : 'bg-white border-gray-300 hover:border-green-400 hover:bg-green-50/30'
                   }`}
                  >
@@ -63,7 +63,7 @@ export default function ShippingCalculator() {
                         value={c.id} 
                         checked={courier === c.id}
                         onChange={(e) => setCourier(e.target.value)}
-                        className="text-green-600 focus:ring-green-500 h-5 w-5 border-gray-400"
+                        className="text-green-700 focus:ring-green-600 h-5 w-5 border-gray-400"
                      />
                      <div>
                        <div className="text-sm font-bold text-gray-900">{c.name}</div>

@@ -84,7 +84,7 @@ export default function WalletPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Wallet Header Card */}
-      <div className={`rounded-2xl p-6 mb-6 shadow-lg ${isPro ? 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600' : 'bg-gradient-to-br from-green-500 via-green-600 to-teal-600'} text-white`}>
+      <div className={`rounded-2xl p-6 mb-6 shadow-lg ${isPro ? 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600' : 'bg-gradient-to-br from-green-600 via-green-700 to-green-700'} text-white`}>
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -164,30 +164,30 @@ export default function WalletPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'overview' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'overview' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
-          <Wallet className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'overview' ? 'text-green-600' : 'text-gray-400'}`} />
+          <Wallet className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'overview' ? 'text-green-700' : 'text-gray-400'}`} />
           <span className={`text-xs font-bold ${activeTab === 'overview' ? 'text-green-700' : 'text-gray-600'}`}>Panoramica</span>
         </button>
         <button
           onClick={() => setActiveTab('deposit')}
-          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'deposit' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'deposit' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
-          <Plus className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'deposit' ? 'text-green-600' : 'text-gray-400'}`} />
+          <Plus className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'deposit' ? 'text-green-700' : 'text-gray-400'}`} />
           <span className={`text-xs font-bold ${activeTab === 'deposit' ? 'text-green-700' : 'text-gray-600'}`}>Ricarica</span>
         </button>
         <button
           onClick={() => setActiveTab('withdraw')}
-          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'withdraw' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'withdraw' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
-          <Minus className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'withdraw' ? 'text-green-600' : 'text-gray-400'}`} />
+          <Minus className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'withdraw' ? 'text-green-700' : 'text-gray-400'}`} />
           <span className={`text-xs font-bold ${activeTab === 'withdraw' ? 'text-green-700' : 'text-gray-600'}`}>Preleva</span>
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'history' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+          className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'history' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
-          <Clock className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'history' ? 'text-green-600' : 'text-gray-400'}`} />
+          <Clock className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'history' ? 'text-green-700' : 'text-gray-400'}`} />
           <span className={`text-xs font-bold ${activeTab === 'history' ? 'text-green-700' : 'text-gray-600'}`}>Cronologia</span>
         </button>
       </div>
@@ -203,7 +203,7 @@ export default function WalletPage() {
                 onClick={() => setActiveTab('deposit')}
                 className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 border border-green-200 rounded-xl transition-colors group"
               >
-                <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-green-700 rounded-lg flex items-center justify-center">
                   <ArrowDownLeft className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
@@ -232,7 +232,7 @@ export default function WalletPage() {
           <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">Ultime transazioni</h3>
-              <button onClick={() => setActiveTab('history')} className="text-sm font-semibold text-green-600 hover:text-green-700">
+              <button onClick={() => setActiveTab('history')} className="text-sm font-semibold text-green-700 hover:text-green-700">
                 Vedi tutte
               </button>
             </div>
@@ -251,7 +251,7 @@ export default function WalletPage() {
                       tx.type === 'commission' ? 'bg-amber-100' :
                       'bg-red-100'
                     }`}>
-                      {tx.type === 'deposit' ? <ArrowDownLeft className="w-4 h-4 text-green-600" /> :
+                      {tx.type === 'deposit' ? <ArrowDownLeft className="w-4 h-4 text-green-700" /> :
                        tx.type === 'commission' ? <TrendingUp className="w-4 h-4 text-amber-600" /> :
                        <ArrowUpRight className="w-4 h-4 text-red-600" />}
                     </div>
@@ -260,7 +260,7 @@ export default function WalletPage() {
                       <p className="text-xs text-gray-500">{new Date(tx.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-bold ${tx.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-sm font-bold ${tx.amount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                         {tx.amount >= 0 ? '+' : ''}{tx.amount.toFixed(2)}
                       </p>
                       {getStatusBadge(tx.status)}
@@ -309,7 +309,7 @@ export default function WalletPage() {
                       req.status === 'pending' ? 'bg-amber-100' : req.status === 'approved' ? 'bg-green-100' : 'bg-red-100'
                     }`}>
                       {req.status === 'pending' ? <Clock className="w-4 h-4 text-amber-600" /> :
-                       req.status === 'approved' ? <CheckCircle className="w-4 h-4 text-green-600" /> :
+                       req.status === 'approved' ? <CheckCircle className="w-4 h-4 text-green-700" /> :
                        <XCircle className="w-4 h-4 text-red-600" />}
                     </div>
                     <div className="flex-1">
@@ -321,7 +321,7 @@ export default function WalletPage() {
                     <div className="text-right">
                       <p className="text-sm font-bold text-gray-900">{req.amount.toFixed(2)}</p>
                       {req.status === 'pending' && <span className="text-xs font-bold text-amber-600">In attesa</span>}
-                      {req.status === 'approved' && <span className="text-xs font-bold text-green-600">Approvato</span>}
+                      {req.status === 'approved' && <span className="text-xs font-bold text-green-700">Approvato</span>}
                       {req.status === 'rejected' && <span className="text-xs font-bold text-red-600">Rifiutato</span>}
                     </div>
                   </div>
@@ -335,7 +335,7 @@ export default function WalletPage() {
       {activeTab === 'deposit' && (
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-green-600" />
+            <CreditCard className="w-5 h-5 text-green-700" />
             Ricarica Wallet
           </h3>
           <p className="text-sm text-gray-500 mb-6">Aggiungi fondi al tuo wallet con carta di credito/debito</p>
@@ -350,7 +350,7 @@ export default function WalletPage() {
                   onClick={() => setDepositAmount(amt.toString())}
                   className={`py-2 rounded-lg text-sm font-bold border-2 transition-all ${
                     depositAmount === amt.toString()
-                      ? 'border-green-500 bg-green-50 text-green-700'
+                      ? 'border-green-600 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -373,7 +373,7 @@ export default function WalletPage() {
                 min="5"
                 max="10000"
                 step="0.01"
-                className="w-full pl-16 pr-4 py-3 border-2 border-gray-200 rounded-xl text-lg font-bold focus:outline-none focus:border-green-500 transition-colors"
+                className="w-full pl-16 pr-4 py-3 border-2 border-gray-200 rounded-xl text-lg font-bold focus:outline-none focus:border-green-600 transition-colors"
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">Min. 5,00 - Max. 10.000,00</p>
@@ -404,7 +404,7 @@ export default function WalletPage() {
           <button
             onClick={handleDeposit}
             disabled={!depositAmount || parseFloat(depositAmount) < 5 || depositLoading}
-            className="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-lg"
+            className="w-full py-3.5 bg-green-700 hover:bg-green-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-lg"
           >
             {depositLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -542,7 +542,7 @@ export default function WalletPage() {
                     tx.type === 'commission' ? 'bg-amber-100' :
                     'bg-red-100'
                   }`}>
-                    {tx.type === 'deposit' ? <ArrowDownLeft className="w-4 h-4 text-green-600" /> :
+                    {tx.type === 'deposit' ? <ArrowDownLeft className="w-4 h-4 text-green-700" /> :
                      tx.type === 'commission' ? <TrendingUp className="w-4 h-4 text-amber-600" /> :
                      <ArrowUpRight className="w-4 h-4 text-red-600" />}
                   </div>
@@ -553,7 +553,7 @@ export default function WalletPage() {
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className={`text-sm font-bold ${tx.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-sm font-bold ${tx.amount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                       {tx.amount >= 0 ? '+' : ''}{tx.amount.toFixed(2)}
                     </p>
                     {getStatusBadge(tx.status)}

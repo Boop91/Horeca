@@ -76,12 +76,12 @@ export default function CompactAccessories({ selected, setSelected, onAddAccesso
             onClick={() => toggleAccessory(acc.id)}
             className={`flex items-center p-2 rounded-xl border-2 cursor-pointer transition-all ${
               selected.includes(acc.id) 
-                ? "bg-green-50 border-green-500 shadow-sm" 
+                ? "bg-green-50 border-green-600 shadow-sm" 
                 : "bg-white border-gray-200 hover:border-green-300 hover:bg-green-50/30"
             }`}
           >
             <div className={`w-5 h-5 rounded border-2 mr-2.5 flex items-center justify-center transition-colors flex-shrink-0 ${
-              selected.includes(acc.id) ? "bg-green-500 border-green-500" : "border-gray-400"
+              selected.includes(acc.id) ? "bg-green-600 border-green-600" : "border-gray-400"
             }`}>
               {selected.includes(acc.id) && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
             </div>
@@ -103,7 +103,7 @@ export default function CompactAccessories({ selected, setSelected, onAddAccesso
                   e.stopPropagation();
                   onAddAccessoryToCart(acc);
                 }}
-                className="p-1.5 rounded-lg transition-all ml-2 flex-shrink-0 bg-green-500 hover:bg-green-600 text-white shadow-sm hover:shadow-md"
+                className="p-1.5 rounded-lg transition-all ml-2 flex-shrink-0 bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md"
                 title="Aggiungi singolarmente al carrello"
               >
                 <Plus className="w-5 h-5 stroke-[3]" />

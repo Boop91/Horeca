@@ -70,7 +70,7 @@ export default function GlossaryPage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
       <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-600">Home</Link>
+        <Link to="/" className="text-gray-600 hover:text-green-700">Home</Link>
         <ChevronRight className="w-4 h-4 text-gray-400" />
         <span className="text-gray-900 font-medium">Glossario</span>
       </nav>
@@ -79,13 +79,13 @@ export default function GlossaryPage() {
       <p className="text-lg text-gray-600 mb-8">Terminologia tecnica del settore attrezzature professionali per la ristorazione.</p>
 
       <div className="relative mb-8">
-        <Search className="absolute left-4 top-1/2 -trangray-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Cerca un termine..."
-          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-600 focus:border-green-600"
         />
       </div>
 

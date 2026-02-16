@@ -37,7 +37,7 @@ function AccountSidebar() {
   const isAdmin = user?.role === 'admin';
 
   const roleConfig: Record<string, { label: string; bg: string }> = {
-    client: { label: 'Cliente', bg: 'from-green-500 to-teal-600' },
+    client: { label: 'Cliente', bg: 'from-green-600 to-green-700' },
     pro: { label: 'Professionista', bg: 'from-amber-500 to-orange-600' },
     admin: { label: 'Amministratore', bg: 'from-gray-700 to-gray-900' },
   };
@@ -88,7 +88,7 @@ function AccountSidebar() {
         >
           <Wallet className="w-4 h-4 text-gray-400" />
           Wallet
-          <span className="ml-auto text-xs font-bold text-green-600">
+          <span className="ml-auto text-xs font-bold text-green-700">
             {user?.walletBalance.toFixed(2)} &euro;
           </span>
         </Link>
@@ -209,7 +209,7 @@ function DashboardSection() {
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-mono font-bold text-amber-700">{user.referralCode}</p>
                   <button onClick={copyReferralCode} className="p-1 hover:bg-gray-100 rounded transition-colors">
-                    {copiedCode ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
+                    {copiedCode ? <Check className="w-3.5 h-3.5 text-green-700" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
                   </button>
                 </div>
               </div>

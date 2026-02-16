@@ -74,7 +74,7 @@ export default function CategoryPage() {
       <main className="max-w-7xl mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Categoria non trovata</h1>
         <p className="text-gray-600 mb-6">La categoria &quot;{slug}&quot; non esiste nel catalogo.</p>
-        <Link to="/" className="px-6 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 inline-block transition-colors">
+        <Link to="/" className="px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 inline-block transition-colors">
           Torna alla Home
         </Link>
       </main>
@@ -160,7 +160,7 @@ export default function CategoryPage() {
   /* ── Helpers ── */
   const etichettaDisponibilita = (d: Product['availability']) => {
     switch (d) {
-      case 'disponibile': return { testo: 'Disponibile', classi: 'bg-green-100 text-green-700' };
+      case 'disponibile': return { testo: 'Disponibile', classi: 'bg-green-100 text-green-600' };
       case 'in_arrivo': return { testo: 'In arrivo', classi: 'bg-amber-100 text-amber-700' };
       case 'su_ordinazione': return { testo: 'Su ordinazione', classi: 'bg-blue-100 text-blue-700' };
       case 'esaurito': return { testo: 'Esaurito', classi: 'bg-red-100 text-red-700' };
@@ -202,28 +202,21 @@ export default function CategoryPage() {
       ? `/categoria/${category.key}/${gruppoCorrente.slug}`
       : '';
 
-  /* ── Related subcategories for sidebar ── */
-  const relatedSubcats = livello === 3 && gruppoCorrente
-    ? gruppoCorrente.sections.filter(s => s.slug !== foglia)
-    : livello === 2 && gruppoCorrente
-      ? category.groups.filter(g => g.slug !== sottocategoria)
-      : [];
-
   /* ══════════════════════════════════════════════════════════════
    * RENDER
    * ══════════════════════════════════════════════════════════════ */
   return (
     <>
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-gray-50 min-h-screen">
 
         {/* ─── Breadcrumb ───────────────────────────────── */}
         <nav className="mb-6 flex items-center gap-1.5 text-sm text-gray-500 flex-wrap">
-          <Link to="/" className="hover:text-green-600 transition-colors">Bianchipro</Link>
+          <Link to="/" className="hover:text-green-700 transition-colors">Bianchipro</Link>
           <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
           {livello === 1 ? (
             <span className="font-semibold text-gray-900">{category.label}</span>
           ) : (
-            <Link to={`/categoria/${category.key}`} className="hover:text-green-600 transition-colors">
+            <Link to={`/categoria/${category.key}`} className="hover:text-green-700 transition-colors">
               {category.label}
             </Link>
           )}
@@ -233,7 +226,7 @@ export default function CategoryPage() {
               {livello === 2 ? (
                 <span className="font-semibold text-gray-900">{gruppoCorrente.title}</span>
               ) : (
-                <Link to={`/categoria/${category.key}/${gruppoCorrente.slug}`} className="hover:text-green-600 transition-colors">
+                <Link to={`/categoria/${category.key}/${gruppoCorrente.slug}`} className="hover:text-green-700 transition-colors">
                   {gruppoCorrente.title}
                 </Link>
               )}
@@ -248,11 +241,11 @@ export default function CategoryPage() {
         </nav>
 
         {/* ─── Header ──────────────────────────────── */}
-        <section className="mb-6">
+        <section className="mb-6 text-center">
           <p className="text-sm font-semibold text-green-600 uppercase tracking-wide mb-1">Selezione Bianchipro</p>
           <h1 className="text-3xl font-extrabold text-gray-900">{titoloCorrente} Prodotti</h1>
           {descrizioneCorrente && (
-            <p className="mt-2 text-gray-600 max-w-3xl leading-relaxed">{descrizioneCorrente}</p>
+            <p className="mt-2 text-gray-600 max-w-3xl mx-auto leading-relaxed">{descrizioneCorrente}</p>
           )}
         </section>
 
@@ -262,13 +255,13 @@ export default function CategoryPage() {
             <div className="relative">
               <button
                 onClick={() => scrollSubcat('left')}
-                className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-white shadow-md hover:bg-green-600 transition-colors"
+                className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => scrollSubcat('right')}
-                className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-white shadow-md hover:bg-green-600 transition-colors"
+                className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors"
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -284,10 +277,10 @@ export default function CategoryPage() {
                     to={`${subcatBasePath}/${item.slug}`}
                     className="group flex-shrink-0 flex flex-col items-center gap-2 w-24"
                   >
-                    <div className="h-20 w-20 rounded-full border-2 border-green-200 bg-green-50 overflow-hidden flex items-center justify-center group-hover:border-green-500 transition-colors shadow-sm">
+                    <div className="h-20 w-20 rounded-full border-2 border-green-200 bg-green-50 overflow-hidden flex items-center justify-center group-hover:border-green-600 transition-colors shadow-sm">
                       <img src={heroImage} alt={item.title} className="h-full w-full object-cover rounded-full" />
                     </div>
-                    <span className="text-xs font-semibold text-gray-800 text-center leading-tight line-clamp-2 group-hover:text-green-600 transition-colors">
+                    <span className="text-xs font-semibold text-gray-800 text-center leading-tight line-clamp-2 group-hover:text-green-700 transition-colors">
                       {item.title}
                     </span>
                   </Link>
@@ -302,8 +295,8 @@ export default function CategoryPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {category.groups.map(gruppo => (
               <Link key={gruppo.slug} to={`/categoria/${category.key}/${gruppo.slug}`} className="group">
-                <article className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow hover:border-green-300">
-                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                <article className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-green-700 transition-colors">
                     {gruppo.title}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
@@ -335,8 +328,8 @@ export default function CategoryPage() {
               const contoProdotti = realProducts.filter(p => slugItems.includes(p.categorySlug)).length;
               return (
                 <Link key={sezione.slug} to={`/categoria/${category.key}/${gruppoCorrente.slug}/${sezione.slug}`} className="group">
-                  <article className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow hover:border-green-300">
-                    <h3 className="text-base font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                  <article className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-base font-bold text-gray-900 group-hover:text-green-700 transition-colors">
                       {sezione.title}
                     </h3>
                     <p className="text-xs text-gray-500 mt-1">
@@ -360,98 +353,28 @@ export default function CategoryPage() {
           </div>
         )}
 
-        {/* ─── LIVELLO 3: Layout con sidebars ─────── */}
+        {/* ─── LIVELLO 3: Filtri orizzontali + griglia prodotti ─────── */}
         {livello === 3 && (
-          <div className="flex gap-6">
-
-            {/* ── Left Sidebar: Filters ── */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-24">
-                <h3 className="font-bold text-gray-900 mb-4">Filtra per</h3>
-
-                {/* Prezzo */}
-                <div className="mb-4">
-                  <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Prezzo (netto)</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number" placeholder="Min" value={filtri.prezzoMin}
-                      onChange={e => aggiornaFiltro('prezzoMin', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
-                    />
-                    <input
-                      type="number" placeholder="Max" value={filtri.prezzoMax}
-                      onChange={e => aggiornaFiltro('prezzoMax', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Marca */}
-                <div className="mb-4">
-                  <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Marca</label>
-                  <select
-                    value={filtri.marca} onChange={e => aggiornaFiltro('marca', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
-                  >
-                    <option value="">Tutte le marche</option>
-                    {marcheDisponibili.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-
-                {/* Disponibilità */}
-                <div className="mb-4">
-                  <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Disponibilità</label>
-                  <select
-                    value={filtri.disponibilita} onChange={e => aggiornaFiltro('disponibilita', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
-                  >
-                    <option value="">Tutti</option>
-                    <option value="disponibile">Disponibile</option>
-                    <option value="in_arrivo">In arrivo</option>
-                    <option value="su_ordinazione">Su ordinazione</option>
-                  </select>
-                </div>
-
-                {/* Reset */}
-                <button
-                  onClick={() => { setFiltri(filtriIniziali); setCurrentPage(1); }}
-                  className="w-full text-sm text-green-600 font-semibold hover:text-green-700 transition-colors"
-                >
-                  Resetta filtri
-                </button>
-
-                {/* Category description */}
-                <div className="mt-6 pt-5 border-t border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-900 mb-2">{titoloCorrente}</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    {descrizioneCorrente}
-                  </p>
-                </div>
-              </div>
-            </aside>
-
-            {/* ── Main Content: Products ── */}
-            <div className="flex-1 min-w-0">
-              {/* Filter bar */}
-              <div className="flex flex-wrap items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-3 mb-5 gap-3">
+          <div>
+            {/* ── Barra filtri orizzontale ── */}
+            <div className="bg-white rounded-2xl shadow-sm px-4 py-3 mb-4">
+              {/* Riga superiore: titolo filtri, conteggio, ordinamento */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="lg:hidden inline-flex items-center gap-1.5 rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-600 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-800 px-5 py-2 text-sm font-bold text-white hover:bg-gray-900 transition-colors"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
-                    Filtra
-                  </button>
-                  <span className="hidden lg:inline-flex items-center gap-1.5 rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-white">
-                    <SlidersHorizontal className="w-4 h-4" />
                     Filtra i prodotti
-                  </span>
+                  </button>
                   <span className="text-sm text-gray-500">
                     ci sono <strong className="text-gray-900">{prodottiOrdinati.length}</strong> prodotti
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-500">Ordina per:</span>
                   <select
                     value={sortBy}
                     onChange={e => setSortBy(e.target.value as SortOption)}
@@ -465,128 +388,134 @@ export default function CategoryPage() {
                 </div>
               </div>
 
-              {/* Mobile filters panel */}
+              {/* Riga filtri dropdown (espandibile) */}
               {showFilters && (
-                <div className="lg:hidden bg-white rounded-xl border border-gray-200 p-5 mb-5 grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 items-end border-t border-gray-100 pt-3">
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase">Prezzo (netto)</label>
-                    <div className="flex gap-2 mt-1">
-                      <input type="number" placeholder="Min" value={filtri.prezzoMin}
-                        onChange={e => aggiornaFiltro('prezzoMin', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none" />
-                      <input type="number" placeholder="Max" value={filtri.prezzoMax}
-                        onChange={e => aggiornaFiltro('prezzoMax', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none" />
-                    </div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Prezzo min</label>
+                    <input
+                      type="number" placeholder="€ Min" value={filtri.prezzoMin}
+                      onChange={e => aggiornaFiltro('prezzoMin', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                    />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase">Marca</label>
-                    <select value={filtri.marca} onChange={e => aggiornaFiltro('marca', e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none">
-                      <option value="">Tutte</option>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Prezzo max</label>
+                    <input
+                      type="number" placeholder="€ Max" value={filtri.prezzoMax}
+                      onChange={e => aggiornaFiltro('prezzoMax', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Marca</label>
+                    <select
+                      value={filtri.marca} onChange={e => aggiornaFiltro('marca', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                    >
+                      <option value="">Tutte le marche</option>
                       {marcheDisponibili.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase">Disponibilit&agrave;</label>
-                    <select value={filtri.disponibilita} onChange={e => aggiornaFiltro('disponibilita', e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none">
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Disponibilità</label>
+                    <select
+                      value={filtri.disponibilita} onChange={e => aggiornaFiltro('disponibilita', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none"
+                    >
                       <option value="">Tutti</option>
                       <option value="disponibile">Disponibile</option>
                       <option value="in_arrivo">In arrivo</option>
                       <option value="su_ordinazione">Su ordinazione</option>
                     </select>
                   </div>
+                  <div>
+                    <button
+                      onClick={() => { setFiltri(filtriIniziali); setCurrentPage(1); }}
+                      className="w-full px-3 py-2 text-sm text-green-600 font-semibold hover:text-green-700 border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
+                    >
+                      Resetta filtri
+                    </button>
+                  </div>
                 </div>
               )}
+            </div>
 
-              {/* Product grid — 4 columns */}
-              {paginatedProducts.length > 0 ? (
-                <>
-                  <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            {/* ── Griglia prodotti — 5 colonne su xl ── */}
+            {paginatedProducts.length > 0 ? (
+              <>
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
                     {paginatedProducts.map(prodotto => {
                       const disp = etichettaDisponibilita(prodotto.availability);
                       const hasDiscount = prodotto.originalPriceNet && prodotto.originalPriceNet > prodotto.priceNet;
 
                       return (
-                        <div key={prodotto.id} className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-green-300 transition-all flex flex-col">
-                          {/* Image + badges */}
-                          <div className="relative">
-                            <Link to={`/prodotto/${prodotto.slug}`}>
-                              <div className="aspect-square bg-gray-50 flex items-center justify-center p-3">
-                                {prodotto.images[0] ? (
-                                  <img
-                                    src={prodotto.images[0]}
-                                    alt={prodotto.name}
-                                    className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <PackageSearch className="w-12 h-12 text-gray-300" />
-                                )}
-                              </div>
-                            </Link>
-                            <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        <div key={prodotto.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col h-full">
+                          {/* Badges row at top */}
+                          <div className="flex items-center justify-between px-3 pt-3">
+                            <div className="flex gap-1">
                               {prodotto.isNew && (
-                                <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">
+                                <span className="bg-blue-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                                   nuovo
                                 </span>
                               )}
                               {prodotto.isOnSale && (
-                                <span className="bg-orange-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">
+                                <span className="bg-orange-400 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                                   offerta
                                 </span>
                               )}
-                              {hasDiscount && (
-                                <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">
-                                  best seller
-                                </span>
-                              )}
                             </div>
-                            <span className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${disp.classi}`}>
-                              {disp.testo}
-                            </span>
+                            {hasDiscount && (
+                              <span className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                                best seller
+                              </span>
+                            )}
                           </div>
 
+                          {/* Image */}
+                          <Link to={`/prodotto/${prodotto.slug}`}>
+                            <div className="aspect-square bg-gray-50 flex items-center justify-center p-4">
+                              {prodotto.images[0] ? (
+                                <img
+                                  src={prodotto.images[0]}
+                                  alt={prodotto.name}
+                                  className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <PackageSearch className="w-12 h-12 text-gray-300" />
+                              )}
+                            </div>
+                          </Link>
+
                           {/* Details */}
-                          <div className="flex flex-col flex-1 p-3">
-                            <span className="mb-1 w-fit rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 uppercase">
+                          <div className="flex flex-col flex-1 px-3 pb-3">
+                            <span className="mb-1.5 w-fit rounded-full bg-green-100 px-2.5 py-0.5 text-[10px] font-semibold text-green-600">
                               {prodotto.categorySlug.replace(/-/g, ' ')}
                             </span>
                             <Link to={`/prodotto/${prodotto.slug}`}>
-                              <h3 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5rem] group-hover:text-green-600 transition-colors">
+                              <h3 className="text-sm font-bold text-gray-900 line-clamp-2 min-h-[2.5rem] group-hover:text-green-700 transition-colors">
                                 {prodotto.name}
                               </h3>
                             </Link>
-                            <div className="mt-1 flex items-center gap-1">
-                              <div className="flex gap-0.5">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-3 w-3 ${i <= Math.round(prodotto.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
-                                  />
-                                ))}
-                              </div>
-                              <span className="text-[10px] text-gray-500">({prodotto.reviewCount})</span>
-                            </div>
-                            <div className="mt-auto pt-2">
-                              {hasDiscount && (
-                                <p className="text-xs text-gray-400 line-through">
-                                  {prodotto.originalPriceNet!.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
+                            <div className="mt-auto pt-3 flex items-end justify-between">
+                              <div>
+                                <p className="text-lg font-extrabold text-gray-900">
+                                  {prodotto.priceNet.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
                                 </p>
-                              )}
-                              <p className="text-lg font-extrabold text-gray-900">
-                                {prodotto.priceNet.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
-                              </p>
-                              <p className="text-[10px] text-gray-500">+ IVA</p>
+                                {hasDiscount && (
+                                  <p className="text-xs text-green-600 line-through">
+                                    {prodotto.originalPriceNet!.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleAddToCart(prodotto)}
+                                className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 transition-colors"
+                              >
+                                acquista
+                              </button>
                             </div>
-                            <button
-                              onClick={() => handleAddToCart(prodotto)}
-                              className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-lg bg-green-500 py-2 text-sm font-bold text-white hover:bg-green-600 transition-colors"
-                            >
-                              <ShoppingCart className="h-3.5 w-3.5" />
-                              Acquista
-                            </button>
                           </div>
                         </div>
                       );
@@ -620,7 +549,7 @@ export default function CategoryPage() {
                             onClick={() => goToPage(page)}
                             className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold transition-colors ${
                               page === currentPage
-                                ? 'bg-green-500 text-white'
+                                ? 'bg-green-600 text-white'
                                 : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -639,55 +568,22 @@ export default function CategoryPage() {
                   )}
                 </>
               ) : (
-                <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
+                <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
                   <PackageSearch className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h2 className="text-xl font-bold text-gray-900 mb-2">Prodotti in arrivo</h2>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
                     Stiamo aggiornando il catalogo per questa categoria. Nel frattempo puoi richiedere un preventivo personalizzato.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a href="tel:+390541620526" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors">
+                    <a href="tel:+390541620526" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors">
                       <Phone className="w-4 h-4" /> Chiama per un preventivo
                     </a>
-                    <button className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-green-500 text-green-600 font-bold rounded-xl hover:bg-green-50 transition-colors">
+                    <button className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-green-600 text-green-600 font-bold rounded-xl hover:bg-green-50 transition-colors">
                       <MessageCircle className="w-4 h-4" /> Richiedi preventivo online
                     </button>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* ── Right Sidebar ── */}
-            <aside className="hidden xl:block w-56 flex-shrink-0">
-              <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-24">
-                <h3 className="font-bold text-gray-900 mb-3 text-sm">{category.label}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed mb-4">
-                  {category.description}
-                </p>
-
-                {relatedSubcats.length > 0 && (
-                  <>
-                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Altre sottocategorie</h4>
-                    <ul className="space-y-1.5">
-                      {relatedSubcats.slice(0, 8).map((sub) => (
-                        <li key={sub.slug}>
-                          <Link
-                            to={
-                              livello === 3 && gruppoCorrente
-                                ? `/categoria/${category.key}/${gruppoCorrente.slug}/${sub.slug}`
-                                : `/categoria/${category.key}/${sub.slug}`
-                            }
-                            className="text-xs text-green-600 hover:text-green-700 hover:underline transition-colors"
-                          >
-                            {sub.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-            </aside>
+            )}
           </div>
         )}
       </main>
@@ -700,14 +596,14 @@ export default function CategoryPage() {
               <div className="flex gap-0.5">
                 {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
               </div>
-              <span className="text-sm font-bold text-green-700">4.8/5</span>
+              <span className="text-sm font-bold text-green-600">4.8/5</span>
               <span className="text-xs text-gray-500">Feedaty</span>
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900">Cosa dicono i nostri clienti</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {reviews.map((r, idx) => (
-              <div key={idx} className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+              <div key={idx} className="bg-gray-50 rounded-2xl p-5">
                 <div className="flex gap-0.5 mb-2">
                   {[1,2,3,4,5].map(i => (
                     <Star key={i} className={`h-4 w-4 ${i <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
@@ -725,11 +621,11 @@ export default function CategoryPage() {
       </section>
 
       {/* ─── Newsletter Bar ──────────────────────── */}
-      <section className="bg-green-600 py-6">
+      <section className="bg-[#1a2332] py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-white">
-            <h3 className="text-lg font-bold">Iscriviti alla Newsletter</h3>
-            <p className="text-sm text-green-100">Ricevi offerte esclusive e novità dal mondo Bianchipro</p>
+          <div>
+            <h3 className="text-lg font-bold text-white">Iscriviti alla Newsletter</h3>
+            <p className="text-sm text-gray-400">Ricevi offerte esclusive e novità dal mondo Bianchipro</p>
           </div>
           <form onSubmit={e => { e.preventDefault(); if (newsletterEmail) { toast.success('Iscrizione completata!'); setNewsletterEmail(''); } }} className="flex gap-2 w-full md:w-auto">
             <input
@@ -737,9 +633,9 @@ export default function CategoryPage() {
               value={newsletterEmail}
               onChange={e => setNewsletterEmail(e.target.value)}
               placeholder="La tua email"
-              className="px-4 py-2.5 rounded-lg text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-green-300"
+              className="px-4 py-2.5 rounded-lg text-sm w-full md:w-64 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-600"
             />
-            <button type="submit" className="bg-white text-green-700 px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-green-50 transition-colors flex items-center gap-2 flex-shrink-0">
+            <button type="submit" className="bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-green-700 transition-colors flex items-center gap-2 flex-shrink-0">
               <Send className="w-4 h-4" />
               Iscriviti
             </button>
