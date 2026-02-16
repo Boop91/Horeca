@@ -8,8 +8,11 @@ import { useRef, useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 
-/* ═══════ DATI STATICI ═══════ */
+/* ═══════ COSTANTI ═══════ */
+const MAX_W = 'max-w-[1100px]';         // container globale
+const SECTION_PY = 'py-14';              // spaziatura verticale tra sezioni
 
+/* ═══════ DATI STATICI ═══════ */
 const selectedProductSlugs = [
   'abbattitore-forcar-ab5514-14-teglie-gn1-1',
   'forno-pizzeria-fimar-fp-elettrico-1-camera',
@@ -58,20 +61,20 @@ const blogPosts = [
 /* ═══════ 1 · HERO ═══════ */
 function HeroSection() {
   return (
-    <section className="relative flex min-h-[420px] items-center overflow-hidden">
+    <section className="relative flex min-h-[460px] items-center overflow-hidden">
       <img src={heroImage} alt="Cucina professionale" className="absolute inset-0 h-full w-full object-cover" />
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-5 py-12">
-        <div className="max-w-sm rounded-xl bg-white/85 p-7 shadow-md backdrop-blur-md">
-          <span className="text-[11px] font-semibold text-green-700">Bianchipro</span>
-          <h1 className="mt-2 text-2xl font-extrabold leading-tight text-gray-900">
+      <div className={`relative z-10 mx-auto w-full ${MAX_W} px-6 py-14`}>
+        <div className="max-w-md rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur-md">
+          <span className="text-xs font-bold uppercase tracking-wider text-green-600">Bianchipro</span>
+          <h1 className="mt-3 text-[26px] font-extrabold leading-snug text-gray-900">
             Soluzioni ed attrezzature professionali per la ristorazione
           </h1>
-          <p className="mt-3 text-xs leading-relaxed text-gray-600">
+          <p className="mt-3 text-[13px] leading-relaxed text-gray-600">
             Siamo orgogliosi del Made in Italy, curiamo ogni dettaglio e puntiamo alla perfezione.
             Perche il vostro successo alimenta anche il nostro.
           </p>
-          <Link to="/categoria/linea-caldo" className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-800 transition-colors">
-            Inizia da qui <ArrowRight className="h-3.5 w-3.5" />
+          <Link to="/categoria/linea-caldo" className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-bold text-green-600 hover:text-green-700 transition-colors">
+            Inizia da qui <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
@@ -89,12 +92,12 @@ const heroBenefits = [
 
 function BenefitsBar() {
   return (
-    <section className="border-b border-gray-100 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 overflow-x-auto px-5 py-2.5" style={{ scrollbarWidth: 'none' }}>
+    <section className="border-b border-gray-200 bg-white">
+      <div className={`mx-auto flex ${MAX_W} items-center justify-between gap-6 overflow-x-auto px-6 py-3`} style={{ scrollbarWidth: 'none' }}>
         {heroBenefits.map((b) => (
-          <div key={b.title} className="flex flex-shrink-0 items-center gap-2">
-            <b.icon className="h-4 w-4 text-green-600" />
-            <span className="whitespace-nowrap text-[11px] font-semibold text-gray-600">{b.title}</span>
+          <div key={b.title} className="flex flex-shrink-0 items-center gap-2.5">
+            <b.icon className="h-[18px] w-[18px] text-green-600" />
+            <span className="whitespace-nowrap text-[13px] font-semibold text-gray-700">{b.title}</span>
           </div>
         ))}
       </div>
@@ -112,7 +115,7 @@ function SelectedProductsCarousel() {
     .filter(Boolean);
 
   const scroll = (dir: 'l' | 'r') => {
-    scrollRef.current?.scrollBy({ left: dir === 'l' ? -260 : 260, behavior: 'smooth' });
+    scrollRef.current?.scrollBy({ left: dir === 'l' ? -280 : 280, behavior: 'smooth' });
   };
 
   const add = (p: NonNullable<(typeof products)[0]>) => {
@@ -121,52 +124,55 @@ function SelectedProductsCarousel() {
   };
 
   return (
-    <section className="bg-[#f0f1f3] py-10">
-      <div className="mx-auto max-w-6xl px-5">
-        <h2 className="mb-6 text-center text-lg font-extrabold text-gray-900">Prodotti selezionati</h2>
+    <section className={`bg-[#f0f1f3] ${SECTION_PY}`}>
+      <div className={`mx-auto ${MAX_W} px-6`}>
+        <h2 className="mb-8 text-center text-xl font-extrabold text-gray-900">Prodotti selezionati</h2>
 
         <div className="relative">
-          <button onClick={() => scroll('l')} className="absolute -left-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow hover:bg-green-700">
-            <ArrowLeft className="h-3.5 w-3.5" />
+          <button onClick={() => scroll('l')} className="absolute -left-4 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors">
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <button onClick={() => scroll('r')} className="absolute -right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow hover:bg-green-700">
-            <ArrowRight className="h-3.5 w-3.5" />
+          <button onClick={() => scroll('r')} className="absolute -right-4 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors">
+            <ArrowRight className="h-4 w-4" />
           </button>
 
-          <div ref={scrollRef} className="flex gap-4 overflow-x-auto scroll-smooth pb-1" style={{ scrollbarWidth: 'none' }}>
+          <div ref={scrollRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2" style={{ scrollbarWidth: 'none' }}>
             {products.map((product) => {
               if (!product) return null;
               const hasDiscount = product.originalPriceNet && product.originalPriceNet > product.priceNet;
 
               return (
-                <div key={product.id} className="group w-[210px] flex-shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md">
-                  <div className="flex items-center justify-between px-3 pt-3">
-                    <div className="flex gap-1">
-                      {product.isNew && <span className="rounded-full bg-blue-500 px-2 py-0.5 text-[9px] font-bold text-white">nuovo</span>}
-                      {product.isOnSale && <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-bold text-white">offerta</span>}
+                <div key={product.id} className="group w-[240px] flex-shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white transition-shadow hover:shadow-lg">
+                  {/* Badges */}
+                  <div className="flex items-center justify-between px-4 pt-3">
+                    <div className="flex gap-1.5">
+                      {product.isNew && <span className="rounded-full bg-blue-500 px-2.5 py-0.5 text-[10px] font-bold text-white">nuovo</span>}
+                      {product.isOnSale && <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white">offerta</span>}
                     </div>
-                    {hasDiscount && <span className="rounded-full bg-green-600 px-2 py-0.5 text-[9px] font-bold text-white">best seller</span>}
+                    {hasDiscount && <span className="rounded-full bg-green-600 px-2.5 py-0.5 text-[10px] font-bold text-white">best seller</span>}
                   </div>
 
+                  {/* Image */}
                   <Link to={`/prodotto/${product.slug}`}>
-                    <div className="flex aspect-square items-center justify-center bg-gray-50 p-4">
+                    <div className="flex aspect-square items-center justify-center p-5">
                       <img src={product.images[0] || heroImage} alt={product.name} className="h-full w-full object-contain transition-transform group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = heroImage; }} />
                     </div>
                   </Link>
 
-                  <div className="flex flex-col p-3">
-                    <span className="mb-1.5 w-fit rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[9px] font-semibold text-green-700">
+                  {/* Info */}
+                  <div className="flex flex-col px-4 pb-4">
+                    <span className="mb-2 w-fit rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-[10px] font-semibold text-green-700">
                       {product.categorySlug.replace(/-/g, ' ')}
                     </span>
                     <Link to={`/prodotto/${product.slug}`}>
-                      <h3 className="line-clamp-2 min-h-[2rem] text-xs font-bold text-gray-900 transition-colors group-hover:text-green-700">{product.name}</h3>
+                      <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-green-700">{product.name}</h3>
                     </Link>
-                    <div className="mt-2 flex items-end justify-between">
+                    <div className="mt-3 flex items-end justify-between">
                       <div>
-                        <span className="text-sm font-extrabold text-gray-900">{product.priceNet.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>
-                        {hasDiscount && <span className="ml-1 block text-[10px] text-green-700 line-through">{product.originalPriceNet!.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>}
+                        <span className="text-base font-extrabold text-gray-900">{product.priceNet.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>
+                        {hasDiscount && <span className="ml-1.5 block text-[11px] text-gray-400 line-through">{product.originalPriceNet!.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>}
                       </div>
-                      <button onClick={() => add(product)} className="rounded-md bg-green-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-green-700 transition-colors">acquista</button>
+                      <button onClick={() => add(product)} className="rounded-lg bg-green-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-green-700 transition-colors">acquista</button>
                     </div>
                   </div>
                 </div>
@@ -182,15 +188,15 @@ function SelectedProductsCarousel() {
 /* ═══════ 4 · SCEGLI PER LA TUA ATTIVITA ═══════ */
 function BusinessTypeSection() {
   return (
-    <section className="bg-white py-8">
-      <div className="mx-auto max-w-6xl px-5">
-        <h2 className="text-center text-lg font-extrabold text-gray-900">Scegli per la tua attivita</h2>
-        <p className="mx-auto mt-1 max-w-md text-center text-[11px] text-gray-500">Trova le attrezzature ideali per il tuo tipo di locale</p>
-        <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
+    <section className={`bg-white ${SECTION_PY}`}>
+      <div className={`mx-auto ${MAX_W} px-6`}>
+        <h2 className="text-center text-xl font-extrabold text-gray-900">Scegli per la tua attivita</h2>
+        <p className="mx-auto mt-2 max-w-lg text-center text-[13px] text-gray-500">Trova le attrezzature ideali per il tuo tipo di locale</p>
+        <div className="mt-8 grid grid-cols-3 gap-3 sm:grid-cols-5">
           {businessTypes.map((bt) => (
-            <Link key={bt.slug} to={`/per-attivita/${bt.slug}`} className="group flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 transition-all hover:border-green-300 hover:shadow-sm">
-              <span className="flex-shrink-0 text-base">{bt.emoji}</span>
-              <span className="text-[11px] font-bold text-gray-900 transition-colors group-hover:text-green-700">{bt.label}</span>
+            <Link key={bt.slug} to={`/per-attivita/${bt.slug}`} className="group flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-4 py-3 transition-all hover:border-green-400 hover:shadow-sm">
+              <span className="flex-shrink-0 text-lg">{bt.emoji}</span>
+              <span className="text-[13px] font-bold text-gray-800 transition-colors group-hover:text-green-700">{bt.label}</span>
             </Link>
           ))}
         </div>
@@ -209,33 +215,33 @@ const promoButtonColors = [
 function ProposalsSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scroll = (dir: 'l' | 'r') => {
-    scrollRef.current?.scrollBy({ left: dir === 'l' ? -300 : 300, behavior: 'smooth' });
+    scrollRef.current?.scrollBy({ left: dir === 'l' ? -340 : 340, behavior: 'smooth' });
   };
 
   return (
-    <section className="bg-gradient-to-b from-green-50/60 to-gray-50 py-10">
-      <div className="mx-auto max-w-6xl px-5">
-        <h2 className="text-center text-lg font-extrabold text-gray-900">Scopri le nostre proposte</h2>
-        <p className="mt-1 text-center text-[11px] text-gray-500">Migliori offerte selezionate</p>
+    <section className={`bg-gradient-to-b from-green-50/60 to-gray-50 ${SECTION_PY}`}>
+      <div className={`mx-auto ${MAX_W} px-6`}>
+        <h2 className="text-center text-xl font-extrabold text-gray-900">Scopri le nostre proposte</h2>
+        <p className="mt-2 text-center text-[13px] text-gray-500">Migliori offerte selezionate</p>
 
-        <div className="relative mt-6">
-          <button onClick={() => scroll('l')} className="absolute -left-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow hover:bg-green-700">
-            <ArrowLeft className="h-3.5 w-3.5" />
+        <div className="relative mt-8">
+          <button onClick={() => scroll('l')} className="absolute -left-4 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors">
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <button onClick={() => scroll('r')} className="absolute -right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow hover:bg-green-700">
-            <ArrowRight className="h-3.5 w-3.5" />
+          <button onClick={() => scroll('r')} className="absolute -right-4 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors">
+            <ArrowRight className="h-4 w-4" />
           </button>
 
-          <div ref={scrollRef} className="flex gap-4 overflow-x-auto scroll-smooth pb-1" style={{ scrollbarWidth: 'none' }}>
+          <div ref={scrollRef} className="flex gap-5 overflow-x-auto scroll-smooth pb-2" style={{ scrollbarWidth: 'none' }}>
             {promoBanners.map((b, i) => (
-              <div key={i} className="w-[300px] flex-shrink-0 overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
-                <div className="h-36 overflow-hidden">
+              <div key={i} className="w-[330px] flex-shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-lg">
+                <div className="h-40 overflow-hidden">
                   <img src={heroImage} alt={b.title} className="h-full w-full object-cover" />
                 </div>
-                <div className="p-4">
-                  <h3 className="mb-1 text-sm font-bold text-gray-900">{b.title}</h3>
-                  <p className="mb-3 text-[11px] leading-relaxed text-gray-500">{b.desc}</p>
-                  <Link to={b.link} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-bold text-white transition-colors ${promoButtonColors[i]}`}>
+                <div className="p-5">
+                  <h3 className="mb-1.5 text-[15px] font-bold text-gray-900">{b.title}</h3>
+                  <p className="mb-4 text-[12px] leading-relaxed text-gray-500">{b.desc}</p>
+                  <Link to={b.link} className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold text-white transition-colors ${promoButtonColors[i]}`}>
                     scopri l&apos;offerta
                   </Link>
                 </div>
@@ -251,15 +257,15 @@ function ProposalsSection() {
 /* ═══════ 6 · CHI SIAMO ═══════ */
 function AboutSection() {
   return (
-    <section className="relative flex min-h-[280px] items-center overflow-hidden">
+    <section className="relative flex min-h-[320px] items-center overflow-hidden">
       <img src={heroImage} alt="BianchiPro" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-gray-900/75" />
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-5 py-12">
+      <div className={`relative z-10 mx-auto w-full ${MAX_W} px-6 py-14`}>
         <div className="max-w-xl">
-          <span className="inline-block rounded-full border border-green-600/30 bg-green-600/20 px-3 py-1 text-[11px] font-semibold text-green-300 backdrop-blur-sm">Bianchipro</span>
-          <h2 className="mt-3 text-xl font-extrabold leading-tight text-white md:text-2xl">Soluzioni Made in Italy per la ristorazione</h2>
-          <p className="mt-3 max-w-lg text-xs leading-relaxed text-gray-300">{companyInfo.description}</p>
-          <p className="mt-2 max-w-lg text-xs leading-relaxed text-gray-400">{companyInfo.mission}</p>
+          <span className="inline-block rounded-full border border-green-500/30 bg-green-600/20 px-4 py-1 text-xs font-bold text-green-300 backdrop-blur-sm">Bianchipro</span>
+          <h2 className="mt-4 text-2xl font-extrabold leading-snug text-white">Soluzioni Made in Italy per la ristorazione</h2>
+          <p className="mt-4 max-w-lg text-[13px] leading-relaxed text-gray-300">{companyInfo.description}</p>
+          <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-gray-400">{companyInfo.mission}</p>
         </div>
       </div>
     </section>
@@ -269,29 +275,30 @@ function AboutSection() {
 /* ═══════ 7 · RECENSIONI ═══════ */
 function ReviewsSection() {
   return (
-    <section className="bg-white py-10">
-      <div className="mx-auto max-w-6xl px-5">
-        <h2 className="text-center text-lg font-extrabold text-gray-900">Leggi le recensioni</h2>
-        <p className="mt-1 text-center text-[11px] text-gray-500">Scopri le recensioni dei nostri clienti</p>
-        <div className="mt-3 flex items-center justify-center">
-          <div className="flex items-center gap-1.5 rounded-md border border-green-200 bg-green-50 px-3 py-1.5">
-            <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />)}</div>
-            <span className="text-xs font-bold text-gray-900">{companyInfo.socialProof.averageRating}/5</span>
-            <span className="text-[10px] text-gray-500">su {companyInfo.socialProof.platform}</span>
+    <section className={`bg-white ${SECTION_PY}`}>
+      <div className={`mx-auto ${MAX_W} px-6`}>
+        <h2 className="text-center text-xl font-extrabold text-gray-900">Leggi le recensioni</h2>
+        <p className="mt-2 text-center text-[13px] text-gray-500">Scopri le recensioni dei nostri clienti</p>
+
+        <div className="mt-4 flex items-center justify-center">
+          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2">
+            <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />)}</div>
+            <span className="text-sm font-bold text-gray-900">{companyInfo.socialProof.averageRating}/5</span>
+            <span className="text-xs text-gray-500">su {companyInfo.socialProof.platform}</span>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {reviews.map((r, i) => (
-            <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-              <div className="mb-1.5 flex gap-0.5">{[1,2,3,4,5].map(j => <Star key={j} className={`h-3 w-3 ${j <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />)}</div>
-              <p className="mb-1.5 text-[10px] text-gray-400">{r.date}</p>
-              <p className="line-clamp-3 text-[11px] leading-relaxed text-gray-700">&ldquo;{r.text}&rdquo;</p>
-              <div className="mt-3 flex items-center gap-1.5">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-50 text-[10px] font-bold text-green-700">{r.name.charAt(0)}</div>
+            <div key={i} className="rounded-2xl border border-gray-100 bg-gray-50/80 p-5">
+              <div className="mb-2 flex gap-0.5">{[1,2,3,4,5].map(j => <Star key={j} className={`h-3.5 w-3.5 ${j <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />)}</div>
+              <p className="mb-2 text-[11px] text-gray-400">{r.date}</p>
+              <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-700">&ldquo;{r.text}&rdquo;</p>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">{r.name.charAt(0)}</div>
                 <div>
-                  <span className="text-[11px] font-semibold text-gray-900">{r.name}</span>
-                  <span className="ml-1 text-[10px] text-gray-500">— {r.city}</span>
+                  <span className="text-[13px] font-semibold text-gray-900">{r.name}</span>
+                  <span className="ml-1.5 text-xs text-gray-400">— {r.city}</span>
                 </div>
               </div>
             </div>
@@ -307,35 +314,35 @@ function CategoryDetailCards() {
   const cats = detailCategoryKeys.map((k) => catalogMenu.find((c) => c.key === k)).filter(Boolean);
 
   return (
-    <section className="bg-[#1a2332] py-10">
-      <div className="mx-auto max-w-6xl px-5">
-        <h2 className="mb-1 text-center text-lg font-extrabold text-white">Categorie in evidenza</h2>
-        <p className="mx-auto mb-6 max-w-md text-center text-[11px] text-gray-400">Naviga per categoria e trova cio che ti serve</p>
+    <section className={`bg-[#1a2332] ${SECTION_PY}`}>
+      <div className={`mx-auto ${MAX_W} px-6`}>
+        <h2 className="mb-2 text-center text-xl font-extrabold text-white">Categorie in evidenza</h2>
+        <p className="mx-auto mb-8 max-w-lg text-center text-[13px] text-gray-400">Naviga per categoria e trova cio che ti serve</p>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cats.map((cat) => {
             if (!cat) return null;
             const pills = cat.groups.slice(0, 4);
             return (
-              <div key={cat.key} className="flex flex-col rounded-xl bg-white p-4">
+              <div key={cat.key} className="flex flex-col rounded-2xl bg-white p-5">
                 {/* top: img + testo */}
-                <div className="mb-3 flex gap-3">
-                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 p-1.5">
+                <div className="mb-4 flex gap-4">
+                  <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-xl bg-gray-50 p-2">
                     <img src={heroImage} alt={cat.label} className="h-full w-full object-contain" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-gray-900">{cat.label}</h3>
-                    <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-gray-500">{cat.description}</p>
+                    <h3 className="text-[15px] font-bold text-gray-900">{cat.label}</h3>
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">{cat.description}</p>
                   </div>
                 </div>
 
                 {/* 4 pill 2x2 */}
-                <div className="mb-3 grid grid-cols-2 gap-1.5">
+                <div className="mb-4 grid grid-cols-2 gap-2">
                   {pills.map((g) => (
                     <Link
                       key={g.slug}
                       to={`/categoria/${cat.slug}/${g.slug}`}
-                      className="truncate rounded-full bg-green-100 px-2.5 py-1.5 text-center text-[10px] font-semibold text-green-700 transition-colors hover:bg-green-200"
+                      className="truncate rounded-full bg-green-50 px-3 py-2 text-center text-[11px] font-semibold text-green-700 transition-colors hover:bg-green-100"
                     >
                       {g.title}
                     </Link>
@@ -345,9 +352,9 @@ function CategoryDetailCards() {
                 {/* visualizza tutto */}
                 <Link
                   to={`/categoria/${cat.slug}`}
-                  className="mt-auto flex w-full items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-green-600 to-[#3a5068] py-2 text-[11px] font-bold text-white transition-opacity hover:opacity-90"
+                  className="mt-auto flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-600 to-[#3a5068] py-2.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
                 >
-                  visualizza tutto <ArrowRight className="h-3 w-3" />
+                  visualizza tutto <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             );
@@ -362,36 +369,38 @@ function CategoryDetailCards() {
 function BlogSection() {
   return (
     <section className="bg-white">
-      <div className="relative flex min-h-[300px] items-center overflow-hidden">
+      {/* Banner */}
+      <div className="relative flex min-h-[340px] items-center overflow-hidden">
         <img src={heroImage} alt="Blog" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gray-900/40" />
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-5 py-10">
-          <div className="max-w-sm rounded-xl bg-white/85 p-6 shadow-md backdrop-blur-md">
-            <span className="mb-2 inline-block text-[11px] font-semibold text-green-700">Bianchipro</span>
-            <h2 className="text-xl font-extrabold leading-tight text-gray-900">Dietro le quinte del mondo della ristorazione</h2>
-            <p className="mt-2 text-xs leading-relaxed text-gray-600">
+        <div className={`relative z-10 mx-auto w-full ${MAX_W} px-6 py-14`}>
+          <div className="max-w-md rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur-md">
+            <span className="mb-2 inline-block text-xs font-bold uppercase tracking-wider text-green-600">Bianchipro</span>
+            <h2 className="text-[22px] font-extrabold leading-snug text-gray-900">Dietro le quinte del mondo della ristorazione</h2>
+            <p className="mt-3 text-[13px] leading-relaxed text-gray-600">
               Scopri il nostro blog e leggi tutti gli articoli e le guide utili dedicati al mondo Ho.Re.Ca.
             </p>
-            <Link to="/guide" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-800 transition-colors">
-              Vedi tutti gli articoli <ArrowRight className="h-3.5 w-3.5" />
+            <Link to="/guide" className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-green-600 hover:text-green-700 transition-colors">
+              Vedi tutti gli articoli <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Cards blog */}
+      <div className={`mx-auto ${MAX_W} px-6 ${SECTION_PY}`}>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {blogPosts.map((post, i) => (
-            <Link key={i} to={post.slug} className="group overflow-hidden rounded-xl bg-white transition-shadow hover:shadow-md">
-              <div className="h-28 overflow-hidden">
+            <Link key={i} to={post.slug} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-shadow hover:shadow-md">
+              <div className="h-32 overflow-hidden">
                 <img src={heroImage} alt={post.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
               </div>
-              <div className="p-3">
-                <div className="mb-1.5 flex items-center gap-1.5">
+              <div className="p-4">
+                <div className="mb-2 flex items-center gap-2">
                   <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-green-600" />
-                  <span className="text-[10px] text-gray-400">{post.date}</span>
+                  <span className="text-[11px] text-gray-400">{post.date}</span>
                 </div>
-                <h3 className="line-clamp-2 text-xs font-bold text-gray-900 transition-colors group-hover:text-green-700">{post.title}</h3>
+                <h3 className="line-clamp-2 text-[13px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-green-700">{post.title}</h3>
               </div>
             </Link>
           ))}
@@ -406,22 +415,22 @@ function NewsletterSection() {
   const [email, setEmail] = useState('');
   return (
     <section className="bg-[#1a2332]">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8 md:flex-row md:items-center md:justify-between">
+      <div className={`mx-auto flex ${MAX_W} flex-col gap-8 px-6 py-10 md:flex-row md:items-center md:justify-between`}>
         <div className="flex-1">
-          <h3 className="mb-1 text-base font-bold text-white">Iscriviti alla Newsletter</h3>
-          <p className="mb-3 text-[11px] text-gray-400">Ricevi offerte esclusive e novita direttamente nella tua casella email.</p>
-          <div className="flex max-w-sm gap-2">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" className="flex-1 rounded-md border-0 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-300" />
-            <button onClick={() => { toast.success('Iscrizione avvenuta!'); setEmail(''); }} className="rounded-md bg-green-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-green-700">Iscriviti</button>
+          <h3 className="mb-2 text-lg font-bold text-white">Iscriviti alla Newsletter</h3>
+          <p className="mb-4 text-[13px] text-gray-400">Ricevi offerte esclusive e novita direttamente nella tua casella email.</p>
+          <div className="flex max-w-md gap-3">
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="La tua email" className="flex-1 rounded-lg border-0 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400" />
+            <button onClick={() => { toast.success('Iscrizione avvenuta!'); setEmail(''); }} className="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-green-700">Iscriviti</button>
           </div>
         </div>
-        <div className="flex flex-col items-start gap-2 md:items-end">
-          <h4 className="text-sm font-bold text-white">Seguici</h4>
-          <div className="flex gap-2">
+        <div className="flex flex-col items-start gap-3 md:items-end">
+          <h4 className="text-base font-bold text-white">Seguici</h4>
+          <div className="flex gap-2.5">
             {['M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
               'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z',
             ].map((d, i) => (
-              <a key={i} href="#" className="flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-white transition-colors hover:bg-green-700">
+              <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-white transition-colors hover:bg-green-700">
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d={d} /></svg>
               </a>
             ))}
