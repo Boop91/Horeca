@@ -1,45 +1,73 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  Search, ArrowRight, Truck, Phone, FileText, ShieldCheck,
-  BadgeEuro, Globe, Star, BookOpen, Clock,
-  Flame, Snowflake, ChefHat, Package, Hotel, SprayCan,
-  Pizza, UtensilsCrossed, Coffee, Beef, Cake, IceCreamCone,
-  Wheat, ConciergeBell, Store,
+  ArrowRight, ArrowLeft, Truck, ShieldCheck, BadgeEuro,
+  Headphones, PackageCheck, CreditCard, Star, ChevronRight,
+  ShoppingCart,
 } from 'lucide-react';
 import heroImage from '../assets/f4ed0b934aabb9cdf06af64854509a5ac97f8256.png';
 import { catalogMenu } from '../data/catalogMenu';
 import { realProducts } from '../data/products/realProducts';
-import { guides } from '../data/guides';
-import { useState } from 'react';
+import { companyInfo } from '../data/companyInfo';
+import { useRef, useState, useCallback } from 'react';
+import { useCart } from '../contexts/CartContext';
+import { toast } from 'sonner';
 
 /* ==========================================================================
- * Icone per le categorie del catalogo (mappatura key -> icona)
+ * Dati statici per le sezioni della Home
  * ========================================================================== */
-const categoryIcons: Record<string, React.ReactNode> = {
-  'linea-caldo': <Flame className="h-6 w-6 text-green-600" />,
-  'linea-freddo': <Snowflake className="h-6 w-6 text-green-600" />,
-  'preparazione': <ChefHat className="h-6 w-6 text-green-600" />,
-  'carrelli-arredo': <Package className="h-6 w-6 text-green-600" />,
-  'hotellerie': <Hotel className="h-6 w-6 text-green-600" />,
-  'igiene': <SprayCan className="h-6 w-6 text-green-600" />,
-};
 
-/* Icone per le tipologie di attivita */
-const businessTypes = [
-  { name: 'Pizzeria', slug: 'pizzeria', icon: Pizza },
-  { name: 'Ristorante', slug: 'ristorante', icon: UtensilsCrossed },
-  { name: 'Bar', slug: 'bar', icon: Coffee },
-  { name: 'Macelleria', slug: 'macelleria', icon: Beef },
-  { name: 'Pasticceria', slug: 'pasticceria', icon: Cake },
-  { name: 'Gelateria', slug: 'gelateria', icon: IceCreamCone },
-  { name: 'Hotel', slug: 'hotel', icon: Hotel },
-  { name: 'Catering', slug: 'catering', icon: ConciergeBell },
-  { name: 'Panetteria', slug: 'panetteria', icon: Wheat },
-  { name: 'Food Truck', slug: 'food-truck', icon: Store },
+/* Benefici — 6 card orizzontali sotto l'hero */
+const benefits = [
+  { icon: BadgeEuro, title: 'Prezzi competitivi', desc: 'I migliori prezzi del mercato per i professionisti' },
+  { icon: Truck, title: 'Spedizioni rapide', desc: 'Consegna in 24/48h in tutta Italia' },
+  { icon: PackageCheck, title: 'Installazione e servizi', desc: 'Supporto completo per l\'installazione' },
+  { icon: Headphones, title: 'Consulenze specializzate', desc: 'Esperti a tua disposizione per ogni esigenza' },
+  { icon: ShieldCheck, title: 'Vasto catalogo', desc: 'Migliaia di prodotti professionali selezionati' },
+  { icon: CreditCard, title: 'Pagamenti sicuri', desc: 'Transazioni protette e metodi flessibili' },
 ];
 
-/* Slug dei prodotti consigliati */
-const featuredSlugs = [
+/* Promo banners per il carousel */
+const promoBanners = [
+  {
+    title: 'Offerte Linea Freddo',
+    desc: 'Scopri le migliori offerte su abbattitori, frigoriferi e congelatori professionali.',
+    cta: 'Scopri l\'offerta',
+    link: '/categoria/linea-freddo',
+    color: 'from-blue-50 to-white',
+  },
+  {
+    title: 'Forni Professionali',
+    desc: 'Selezione premium di forni per pizza, convezione e professionali a prezzi imbattibili.',
+    cta: 'Scopri l\'offerta',
+    link: '/categoria/linea-caldo/forni-professionali',
+    color: 'from-orange-50 to-white',
+  },
+  {
+    title: 'Preparazione e Lavorazione',
+    desc: 'Impastatrici, affettatrici e tutto per la preparazione professionale degli alimenti.',
+    cta: 'Scopri l\'offerta',
+    link: '/categoria/preparazione',
+    color: 'from-green-50 to-white',
+  },
+];
+
+/* Recensioni di esempio */
+const reviews = [
+  { name: 'Marco R.', city: 'Milano', rating: 5, text: 'Servizio eccellente, abbattitore arrivato in 3 giorni. Imballaggio perfetto e assistenza impeccabile.' },
+  { name: 'Giulia T.', city: 'Roma', rating: 5, text: 'Prezzi imbattibili per i forni pizza. Gia il secondo ordine, sempre puntualissimi con le consegne.' },
+  { name: 'Alessandro B.', city: 'Napoli', rating: 4, text: 'Frigorifero professionale di ottima qualita. Consiglio vivamente BianchiPro a tutti i colleghi ristoratori.' },
+  { name: 'Laura F.', city: 'Firenze', rating: 5, text: 'Consulenza telefonica eccezionale. Mi hanno aiutato a scegliere l\'attrezzatura perfetta per il mio ristorante.' },
+];
+
+/* Categorie in evidenza — gruppi scelti dal catalogo */
+const featuredGroupSlugs = [
+  'cottura-a-contatto', 'forni-professionali', 'refrigerazione',
+  'cottura-per-immersione', 'lavorazione-pasta', 'mantenimento-temperatura',
+  'tavoli-refrigerati', 'attrezzature-per-bar', 'carrelli-neutri', 'cucina-professionale',
+];
+
+/* Slug prodotti selezionati */
+const selectedProductSlugs = [
   'abbattitore-forcar-ab5514-14-teglie-gn1-1',
   'forno-pizzeria-fimar-fp-elettrico-1-camera',
   'friggitrice-fimar-fy8l-8-lt-monofase',
@@ -50,175 +78,63 @@ const featuredSlugs = [
   'friggitrice-fimar-fr4n-6-lt-monofase',
 ];
 
-/* Dati delle proposte di valore */
-const valueProps = [
-  { icon: Truck, title: 'Spedizione Veloce', desc: 'Consegna rapida in tutta Italia con corriere espresso e tracking.' },
-  { icon: Phone, title: 'Assistenza Telefonica', desc: 'Supporto tecnico e commerciale dal lunedi al venerdi, 9-18.' },
-  { icon: FileText, title: 'Fatturazione Elettronica', desc: 'Fattura elettronica immediata per ogni ordine professionale.' },
-  { icon: ShieldCheck, title: 'Garanzia 2 Anni', desc: 'Tutti i prodotti coperti da garanzia ufficiale del produttore.' },
-  { icon: BadgeEuro, title: 'Prezzi Competitivi', desc: 'I migliori prezzi del mercato con offerte esclusive per i professionisti.' },
-  { icon: Globe, title: 'Made in Italy', desc: 'Selezione di attrezzature fabbricate in Italia da brand leader.' },
-];
-
-/* Recensioni di esempio */
-const reviews = [
-  { name: 'Marco R.', city: 'Milano', rating: 5, text: 'Servizio eccellente, abbattitore arrivato in 3 giorni. Imballaggio perfetto e assistenza impeccabile.' },
-  { name: 'Giulia T.', city: 'Roma', rating: 5, text: 'Prezzi imbattibili per i forni pizza. Gia il secondo ordine, sempre puntualissimi con le consegne.' },
-  { name: 'Alessandro B.', city: 'Napoli', rating: 4, text: 'Frigorifero professionale di ottima qualita. Consiglio vivamente BianchiPro a tutti i colleghi ristoratori.' },
-];
-
-/* Categorie in evidenza per la sezione Esplora il Catalogo */
-const featuredCatalogKeys = ['linea-caldo', 'linea-freddo', 'preparazione'];
+/* Categorie principali (per le 6 category detail cards) */
+const detailCategoryKeys = ['linea-caldo', 'linea-freddo', 'preparazione', 'carrelli-arredo', 'hotellerie', 'igiene'];
 
 /* ==========================================================================
- * A) SEZIONE HERO — Immagine di sfondo con barra di ricerca prominente
+ * A) SEZIONE HERO
  * ========================================================================== */
 function HeroSection() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/cerca?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   return (
-    <section className="relative min-h-[480px] flex items-center overflow-hidden">
-      {/* Immagine di sfondo a tutta larghezza */}
+    <section className="relative min-h-[520px] flex items-center overflow-hidden">
       <img
         src={heroImage}
         alt="Cucina professionale"
         className="absolute inset-0 h-full w-full object-cover"
       />
+      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 to-gray-900/40" />
 
-      {/* Gradiente scuro per leggibilita del testo */}
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/75 to-gray-900/45" />
-
-      {/* Contenuto del hero */}
-      <div className="relative z-10 mx-auto w-full max-w-5xl px-4 py-20 text-center">
-        <h1 className="text-4xl font-extrabold text-white md:text-5xl lg:text-6xl leading-tight">
-          Attrezzature professionali<br />per la ristorazione
-        </h1>
-        <p className="mt-4 text-lg text-gray-200 md:text-xl">
-          Dal 1965 — Made in Italy
-        </p>
-
-        {/* Barra di ricerca */}
-        <form onSubmit={handleSearch} className="mx-auto mt-8 flex max-w-2xl items-center rounded-xl bg-white shadow-xl">
-          <Search className="ml-4 h-5 w-5 text-gray-400 shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cerca attrezzature, brand, modelli..."
-            className="flex-1 bg-transparent px-4 py-4 text-gray-900 placeholder:text-gray-400 outline-none"
-          />
-          <button
-            type="submit"
-            className="m-1.5 rounded-lg bg-green-500 px-6 py-3 font-extrabold text-white hover:bg-green-600 transition-colors"
-          >
-            Cerca
-          </button>
-        </form>
-      </div>
-    </section>
-  );
-}
-
-/* ==========================================================================
- * B) ETICHETTE CATEGORIE — 6 categorie principali con card sovrapposta al hero
- * ========================================================================== */
-function CategoryLabels() {
-  /* Filtra solo le 6 categorie principali (escludi ricambi e seconda-scelta) */
-  const mainCategories = catalogMenu.filter(
-    (c) => c.key !== 'ricambi' && c.key !== 'seconda-scelta'
-  );
-
-  return (
-    <section className="relative z-20 mx-auto -mt-8 max-w-6xl px-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {mainCategories.map((cat) => (
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-24">
+        <div className="max-w-2xl">
+          <span className="inline-block rounded-full bg-green-500/20 px-4 py-1.5 text-sm font-semibold text-green-300 backdrop-blur-sm border border-green-500/30">
+            Bianchipro
+          </span>
+          <h1 className="mt-4 text-4xl font-extrabold text-white md:text-5xl lg:text-6xl leading-tight">
+            Soluzioni ed attrezzature professionali per la ristorazione
+          </h1>
+          <p className="mt-4 text-lg text-gray-300 max-w-lg">
+            Dal 1960, selezioniamo le migliori attrezzature Made in Italy per ristoranti, bar, pizzerie e hotel.
+          </p>
           <Link
-            key={cat.key}
-            to={`/categoria/${cat.slug}`}
-            className="flex flex-col items-center gap-3 rounded-xl border border-gray-100 bg-white p-5 shadow-md transition-all hover:shadow-lg hover:border-green-300"
+            to="/categoria/linea-caldo"
+            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-green-500 px-8 py-3.5 font-bold text-white shadow-lg hover:bg-green-600 transition-colors"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
-              {categoryIcons[cat.key] ?? <Package className="h-6 w-6 text-green-600" />}
-            </div>
-            <span className="text-center text-sm font-bold text-gray-900">{cat.label}</span>
+            Inizia da qui
+            <ArrowRight className="h-5 w-5" />
           </Link>
-        ))}
+        </div>
       </div>
     </section>
   );
 }
 
 /* ==========================================================================
- * C) TIPOLOGIA ATTIVITA — "Scegli per la tua attivita"
+ * B) BARRA BENEFICI — 6 card
  * ========================================================================== */
-function BusinessTypeSection() {
+function BenefitsBar() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
-      <h2 className="text-center text-3xl font-extrabold text-gray-900">
-        Scegli per la tua attivita
-      </h2>
-      <p className="mx-auto mt-2 max-w-xl text-center text-gray-600">
-        Attrezzature selezionate per ogni tipologia di attivita nel settore Ho.Re.Ca.
-      </p>
-
-      <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-        {businessTypes.map((bt) => {
-          const Icon = bt.icon;
-          return (
-            <Link
-              key={bt.slug}
-              to={`/per-attivita/${bt.slug}`}
-              className="flex flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white p-5 transition-all hover:border-green-400 hover:shadow-md"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
-                <Icon className="h-6 w-6 text-green-600" />
-              </div>
-              <span className="text-sm font-bold text-gray-900">{bt.name}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-/* ==========================================================================
- * D) PROPOSTE DI VALORE — "Perche scegliere BianchiPro"
- * ========================================================================== */
-function ValuePropsSection() {
-  return (
-    <section className="bg-gray-50 py-16">
-      <div className="mx-auto max-w-6xl px-4">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          Perche scegliere BianchiPro
-        </h2>
-        <p className="mx-auto mt-2 max-w-xl text-center text-gray-600">
-          Da oltre 50 anni al servizio dei professionisti della ristorazione
-        </p>
-
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {valueProps.map((vp) => {
-            const Icon = vp.icon;
+    <section className="bg-white border-b border-gray-100">
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {benefits.map((b) => {
+            const Icon = b.icon;
             return (
-              <div
-                key={vp.title}
-                className="flex gap-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm"
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-50">
-                  <Icon className="h-6 w-6 text-green-600" />
+              <div key={b.title} className="flex flex-col items-center text-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-5 hover:shadow-sm transition-shadow">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-50">
+                  <Icon className="h-5 w-5 text-green-600" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">{vp.title}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{vp.desc}</p>
-                </div>
+                <h3 className="text-sm font-bold text-gray-900 leading-tight">{b.title}</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">{b.desc}</p>
               </div>
             );
           })}
@@ -229,142 +145,479 @@ function ValuePropsSection() {
 }
 
 /* ==========================================================================
- * E) RECENSIONI — Valutazioni dei clienti
+ * C) CAROUSEL BANNER PROMOZIONALI
  * ========================================================================== */
-function ReviewsSection() {
+function PromoBannersCarousel() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const scrollTo = useCallback((index: number) => {
+    if (!scrollRef.current) return;
+    const child = scrollRef.current.children[index] as HTMLElement;
+    if (child) {
+      scrollRef.current.scrollTo({ left: child.offsetLeft, behavior: 'smooth' });
+      setCurrentIndex(index);
+    }
+  }, []);
+
+  const prev = () => scrollTo(Math.max(0, currentIndex - 1));
+  const next = () => scrollTo(Math.min(promoBanners.length - 1, currentIndex + 1));
+
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
-      <div className="text-center">
-        <h2 className="text-3xl font-extrabold text-gray-900">
-          La voce dei professionisti
+    <section className="bg-gray-50 py-14">
+      <div className="mx-auto max-w-6xl px-4">
+        <h2 className="text-center text-2xl font-extrabold text-gray-900 mb-8">
+          Offerte e Promozioni
         </h2>
-        <div className="mt-3 flex items-center justify-center gap-2">
-          {/* Stelle di valutazione media */}
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star
-                key={i}
-                className={`h-5 w-5 ${i <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-yellow-400/50 text-yellow-400/50'}`}
+
+        <div className="relative">
+          {/* Navigation arrows */}
+          <button
+            onClick={prev}
+            className="absolute -left-3 top-1/2 z-10 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-md hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            disabled={currentIndex === 0}
+          >
+            <ArrowLeft className="h-4 w-4 text-gray-700" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute -right-3 top-1/2 z-10 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-md hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            disabled={currentIndex === promoBanners.length - 1}
+          >
+            <ArrowRight className="h-4 w-4 text-gray-700" />
+          </button>
+
+          <div
+            ref={scrollRef}
+            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {promoBanners.map((banner, idx) => (
+              <div
+                key={idx}
+                className={`flex-shrink-0 w-full snap-center rounded-2xl bg-gradient-to-br ${banner.color} border border-gray-200 p-8 md:p-10 shadow-sm`}
+              >
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-extrabold text-gray-900">{banner.title}</h3>
+                    <p className="mt-2 text-sm text-gray-600 leading-relaxed max-w-md">{banner.desc}</p>
+                    <Link
+                      to={banner.link}
+                      className="mt-5 inline-flex items-center gap-2 rounded-lg bg-green-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-600 transition-colors"
+                    >
+                      {banner.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                  <div className="hidden md:block w-48 h-32 rounded-xl bg-white/60 border border-gray-100 flex items-center justify-center">
+                    <img src={heroImage} alt={banner.title} className="w-full h-full object-cover rounded-xl opacity-80" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Dots */}
+          <div className="flex justify-center gap-2 mt-5">
+            {promoBanners.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => scrollTo(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentIndex ? 'w-6 bg-green-500' : 'w-2 bg-gray-300'
+                }`}
               />
             ))}
           </div>
-          <span className="font-bold text-gray-900">4.7 / 5</span>
-          <span className="text-gray-500">su Feedaty</span>
         </div>
-      </div>
-
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {reviews.map((r, idx) => (
-          <div
-            key={idx}
-            className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm"
-          >
-            {/* Stelle della singola recensione */}
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${i <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
-                />
-              ))}
-            </div>
-            <p className="mt-3 text-sm text-gray-800 leading-relaxed">"{r.text}"</p>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-xs font-bold text-green-600">
-                {r.name.charAt(0)}
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-gray-900">{r.name}</span>
-                <span className="ml-1 text-xs text-gray-500">— {r.city}</span>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     </section>
   );
 }
 
 /* ==========================================================================
- * F) PRODOTTI CONSIGLIATI — "I piu scelti dai professionisti"
+ * D) CHI SIAMO — About section
  * ========================================================================== */
-function RecommendedProducts() {
-  /* Recupera i prodotti in base agli slug richiesti, mantenendo l'ordine */
-  const products = featuredSlugs
-    .map((slug) => realProducts.find((p) => p.slug === slug))
+function AboutSection() {
+  return (
+    <section className="bg-white py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div className="overflow-hidden rounded-2xl">
+            <img
+              src={heroImage}
+              alt="Cucina professionale BianchiPro"
+              className="h-full w-full object-cover aspect-[4/3]"
+            />
+          </div>
+          <div>
+            <span className="text-sm font-semibold text-green-600 uppercase tracking-wide">Chi siamo</span>
+            <h2 className="mt-2 text-3xl font-extrabold text-gray-900 leading-tight">
+              Bianchipro — Soluzioni Made in Italy per la ristorazione
+            </h2>
+            <p className="mt-4 text-gray-600 leading-relaxed">
+              {companyInfo.description}
+            </p>
+            <p className="mt-3 text-gray-600 leading-relaxed">
+              {companyInfo.mission}
+            </p>
+            <Link
+              to="/chi-siamo"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 transition-colors"
+            >
+              Scopri la nostra storia
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================================================
+ * E) RECENSIONI — Feedaty
+ * ========================================================================== */
+function ReviewsSection() {
+  return (
+    <section className="bg-gray-50 py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-extrabold text-gray-900">
+            Leggi le recensioni
+          </h2>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star
+                  key={i}
+                  className={`h-5 w-5 ${i <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-yellow-400/50 text-yellow-400/50'}`}
+                />
+              ))}
+            </div>
+            <span className="font-bold text-gray-900">{companyInfo.socialProof.averageRating} / 5</span>
+            <span className="text-sm text-gray-500">— {companyInfo.socialProof.totalReviews}+ recensioni su {companyInfo.socialProof.platform}</span>
+          </div>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {reviews.map((r, idx) => (
+            <div
+              key={idx}
+              className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
+            >
+              <div className="flex gap-0.5 mb-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${i <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
+                  />
+                ))}
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">"{r.text}"</p>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-xs font-bold text-green-600">
+                  {r.name.charAt(0)}
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-gray-900">{r.name}</span>
+                  <span className="ml-1 text-xs text-gray-500">— {r.city}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================================================
+ * F) CATEGORIE IN EVIDENZA — 2 righe di 5
+ * ========================================================================== */
+function FeaturedCategoriesGrid() {
+  /* Trova i gruppi dal catalogo in base agli slug */
+  const featuredGroups = featuredGroupSlugs
+    .map((gSlug) => {
+      for (const cat of catalogMenu) {
+        const group = cat.groups.find((g) => g.slug === gSlug);
+        if (group) return { ...group, parentSlug: cat.slug };
+      }
+      return null;
+    })
+    .filter(Boolean) as Array<{ title: string; slug: string; parentSlug: string; sections: unknown[] }>;
+
+  return (
+    <section className="bg-white py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <h2 className="text-center text-2xl font-extrabold text-gray-900">
+          Categorie in evidenza
+        </h2>
+        <p className="mx-auto mt-2 max-w-lg text-center text-sm text-gray-500">
+          Esplora le categorie piu richieste dai professionisti della ristorazione
+        </p>
+
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+          {featuredGroups.map((group) => (
+            <Link
+              key={group.slug}
+              to={`/categoria/${group.parentSlug}/${group.slug}`}
+              className="group flex flex-col items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-5 text-center transition-all hover:border-green-300 hover:shadow-md hover:bg-white"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm group-hover:border-green-300 transition-colors">
+                <img src={heroImage} alt={group.title} className="h-10 w-10 rounded-full object-cover" />
+              </div>
+              <span className="text-xs font-bold text-gray-900 leading-tight">{group.title}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================================================
+ * G) CATEGORY DETAIL CARDS — 6 card in griglia 2×3
+ * ========================================================================== */
+function CategoryDetailCards() {
+  const detailCategories = detailCategoryKeys
+    .map((key) => catalogMenu.find((c) => c.key === key))
     .filter(Boolean);
 
   return (
     <section className="bg-gray-50 py-16">
       <div className="mx-auto max-w-6xl px-4">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          I piu scelti dai professionisti
+        <h2 className="text-center text-2xl font-extrabold text-gray-900">
+          Esplora il Catalogo
         </h2>
-        <p className="mx-auto mt-2 max-w-xl text-center text-gray-600">
-          Le attrezzature preferite dai nostri clienti Ho.Re.Ca.
+        <p className="mx-auto mt-2 max-w-lg text-center text-sm text-gray-500">
+          Naviga per categoria e trova esattamente cio che ti serve
         </p>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => {
-            if (!product) return null;
-            const hasDiscount = product.originalPriceNet && product.originalPriceNet > product.priceNet;
-            const discountPct = hasDiscount
-              ? Math.round((1 - product.priceNet / product.originalPriceNet!) * 100)
-              : 0;
-
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {detailCategories.map((cat) => {
+            if (!cat) return null;
             return (
-              <Link
-                key={product.id}
-                to={`/prodotto/${product.slug}`}
-                className="group flex flex-col rounded-xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-lg hover:border-green-300"
+              <div
+                key={cat.key}
+                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
               >
-                {/* Immagine prodotto */}
-                <div className="relative aspect-square overflow-hidden rounded-t-xl bg-gray-50">
-                  <img
-                    src={product.images[0] || heroImage}
-                    alt={product.name}
-                    className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = heroImage;
-                    }}
-                  />
-                  {/* Badge sconto */}
-                  {hasDiscount && (
-                    <span className="absolute left-2 top-2 rounded-md bg-orange-400 px-2 py-0.5 text-xs font-bold text-white">
-                      -{discountPct}%
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center overflow-hidden">
+                    <img src={heroImage} alt={cat.label} className="h-full w-full object-cover" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">{cat.label}</h3>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-4">
+                  {cat.description}
+                </p>
+
+                {/* Tag sottocategorie */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {cat.groups.slice(0, 4).map((group) => (
+                    <Link
+                      key={group.slug}
+                      to={`/categoria/${cat.slug}/${group.slug}`}
+                      className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors"
+                    >
+                      {group.title}
+                    </Link>
+                  ))}
+                  {cat.groups.length > 4 && (
+                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-400">
+                      +{cat.groups.length - 4}
                     </span>
                   )}
                 </div>
 
-                {/* Dettagli prodotto */}
+                <Link
+                  to={`/categoria/${cat.slug}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors"
+                >
+                  Visualizza tutto
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================================================
+ * H) PROPOSTE CAROUSEL
+ * ========================================================================== */
+function ProposalsCarousel() {
+  const proposals = [
+    { title: 'Attrezzatura per Pizzeria', desc: 'Tutto il necessario per avviare o rinnovare la tua pizzeria', link: '/categoria/linea-caldo/forni-professionali' },
+    { title: 'Linea Refrigerazione', desc: 'Frigoriferi, congelatori e abbattitori per la tua cucina', link: '/categoria/linea-freddo' },
+    { title: 'Kit Bar Completo', desc: 'Granitore, spremiagrumi, frullatori e molto altro', link: '/categoria/preparazione/attrezzature-per-bar' },
+    { title: 'Arredo Professionale', desc: 'Tavoli inox, carrelli e arredo per la tua attivita', link: '/categoria/carrelli-arredo' },
+  ];
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const amount = 320;
+    scrollRef.current.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="bg-white py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-extrabold text-gray-900">
+            Scopri le nostre proposte
+          </h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => scroll('left')}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <ArrowRight className="h-4 w-4 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-5 overflow-x-auto scroll-smooth pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {proposals.map((p, idx) => (
+            <Link
+              key={idx}
+              to={p.link}
+              className="group flex-shrink-0 w-72 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden hover:shadow-md hover:border-green-300 transition-all"
+            >
+              <div className="h-36 bg-gradient-to-br from-green-50 to-gray-100 flex items-center justify-center">
+                <img src={heroImage} alt={p.title} className="h-28 w-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="p-4">
+                <h3 className="text-sm font-bold text-gray-900 group-hover:text-green-600 transition-colors">{p.title}</h3>
+                <p className="mt-1 text-xs text-gray-500 line-clamp-2">{p.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================================================
+ * I) PRODOTTI SELEZIONATI CAROUSEL
+ * ========================================================================== */
+function SelectedProductsCarousel() {
+  const { addItem } = useCart();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const products = selectedProductSlugs
+    .map((slug) => realProducts.find((p) => p.slug === slug))
+    .filter(Boolean);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const amount = 300;
+    scrollRef.current.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
+
+  const handleAddToCart = (product: NonNullable<typeof products[0]>) => {
+    addItem({
+      id: `product-${product.id}-${Date.now()}`,
+      name: product.name,
+      price: product.priceNet,
+      quantity: 1,
+      image: product.images[0] || heroImage,
+    });
+    toast.success('Prodotto aggiunto al carrello');
+  };
+
+  return (
+    <section className="bg-gray-50 py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-extrabold text-gray-900">
+            Prodotti selezionati
+          </h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => scroll('left')}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 text-gray-600" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <ArrowRight className="h-4 w-4 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-5 overflow-x-auto scroll-smooth pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {products.map((product) => {
+            if (!product) return null;
+            const hasDiscount = product.originalPriceNet && product.originalPriceNet > product.priceNet;
+
+            return (
+              <div
+                key={product.id}
+                className="group flex-shrink-0 w-64 flex flex-col rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-green-300 transition-all"
+              >
+                {/* Badges */}
+                <div className="relative">
+                  <Link to={`/prodotto/${product.slug}`}>
+                    <div className="aspect-square overflow-hidden rounded-t-xl bg-gray-50 p-3">
+                      <img
+                        src={product.images[0] || heroImage}
+                        alt={product.name}
+                        className="h-full w-full object-contain group-hover:scale-105 transition-transform"
+                        onError={(e) => { (e.target as HTMLImageElement).src = heroImage; }}
+                      />
+                    </div>
+                  </Link>
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {product.isNew && (
+                      <span className="rounded-md bg-blue-500 px-2 py-0.5 text-xs font-bold text-white">nuovo</span>
+                    )}
+                    {product.isOnSale && (
+                      <span className="rounded-md bg-orange-400 px-2 py-0.5 text-xs font-bold text-white">offerta</span>
+                    )}
+                    {hasDiscount && (
+                      <span className="rounded-md bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">best seller</span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex flex-1 flex-col p-4">
-                  {/* Badge categoria */}
-                  <span className="mb-1 w-fit rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+                  {/* Category tag */}
+                  <span className="mb-1.5 w-fit rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                     {product.categorySlug.replace(/-/g, ' ')}
                   </span>
 
-                  {/* Brand */}
-                  <span className="text-xs text-gray-500">{product.brand}</span>
+                  {/* Product name */}
+                  <Link to={`/prodotto/${product.slug}`}>
+                    <h3 className="line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-green-600 transition-colors min-h-[2.5rem]">
+                      {product.name}
+                    </h3>
+                  </Link>
 
-                  {/* Nome prodotto */}
-                  <h3 className="mt-1 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-green-600">
-                    {product.name}
-                  </h3>
-
-                  {/* Stelle */}
-                  <div className="mt-2 flex items-center gap-1">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Star
-                          key={i}
-                          className={`h-3.5 w-3.5 ${i <= Math.round(product.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">({product.reviewCount})</span>
-                  </div>
-
-                  {/* Prezzo */}
+                  {/* Price */}
                   <div className="mt-auto pt-3">
                     {hasDiscount && (
                       <span className="text-xs text-gray-400 line-through">
@@ -376,233 +629,57 @@ function RecommendedProducts() {
                       <span className="ml-1 text-xs font-normal text-gray-500">+ IVA</span>
                     </div>
                   </div>
+
+                  {/* Buy button */}
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="mt-3 w-full flex items-center justify-center gap-2 rounded-lg bg-green-500 py-2.5 text-sm font-bold text-white hover:bg-green-600 transition-colors"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    Acquista
+                  </button>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
-
-        {/* Pulsante per vedere tutto il catalogo */}
-        <div className="mt-10 text-center">
-          <Link
-            to="/categoria/linea-caldo"
-            className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-8 py-3 font-extrabold text-white hover:bg-green-600 transition-colors"
-          >
-            Scopri tutto il catalogo
-            <ArrowRight className="h-5 w-5" />
-          </Link>
-        </div>
       </div>
     </section>
   );
 }
 
 /* ==========================================================================
- * G) CATEGORIE IN EVIDENZA — "Esplora il Catalogo"
- * ========================================================================== */
-function FeaturedCategories() {
-  const featured = catalogMenu.filter((c) => featuredCatalogKeys.includes(c.key));
-
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
-      <h2 className="text-center text-3xl font-extrabold text-gray-900">
-        Esplora il Catalogo
-      </h2>
-      <p className="mx-auto mt-2 max-w-xl text-center text-gray-600">
-        Naviga per categoria e trova esattamente cio che ti serve
-      </p>
-
-      <div className="mt-10 grid gap-8 lg:grid-cols-3">
-        {featured.map((cat) => (
-          <div
-            key={cat.key}
-            className="rounded-xl border border-gray-200 bg-white p-6"
-          >
-            {/* Intestazione categoria */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50">
-                {categoryIcons[cat.key] ?? <Package className="h-5 w-5 text-green-600" />}
-              </div>
-              <Link
-                to={`/categoria/${cat.slug}`}
-                className="text-lg font-extrabold text-gray-900 hover:text-green-600"
-              >
-                {cat.label}
-              </Link>
-            </div>
-
-            {/* Pill con sottocategorie */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {cat.groups.slice(0, 6).map((group) => (
-                <Link
-                  key={group.slug}
-                  to={`/categoria/${cat.slug}/${group.slug}`}
-                  className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-800 transition-all hover:bg-green-50 hover:border-green-400 hover:text-green-700"
-                >
-                  {group.title}
-                </Link>
-              ))}
-            </div>
-
-            {/* Link "vedi tutto" */}
-            <Link
-              to={`/categoria/${cat.slug}`}
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#6B9BD1] hover:text-[#5A8AC0] transition-colors"
-            >
-              Vedi tutti
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ==========================================================================
- * H) SEZIONE PAUSA — Sfondo scuro con la storia di BianchiPro
- * ========================================================================== */
-function PauseSection() {
-  return (
-    <section className="bg-[#111827] py-20">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          {/* Colonna testo */}
-          <div>
-            <h2 className="text-3xl font-extrabold text-white">
-              La qualita professionale,<br />dal 1965
-            </h2>
-            <p className="mt-4 leading-relaxed text-gray-300">
-              BianchiPro nasce dalla passione per la ristorazione e dalla volonta
-              di fornire ai professionisti le migliori attrezzature Made in Italy.
-              Da oltre mezzo secolo selezioniamo forni, abbattitori, frigoriferi e
-              tutta la gamma di prodotti per l'Ho.Re.Ca., garantendo qualita,
-              assistenza dedicata e prezzi competitivi.
-            </p>
-            <p className="mt-3 leading-relaxed text-gray-300">
-              Ogni prodotto nel nostro catalogo e scelto con cura per rispondere
-              alle esigenze reali di ristoranti, pizzerie, bar, hotel e
-              catering professionali.
-            </p>
-            <Link
-              to="/chi-siamo"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-green-500 px-8 py-3 font-extrabold text-white hover:bg-green-600 transition-colors"
-            >
-              Scopri la nostra storia
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-
-          {/* Colonna immagine */}
-          <div className="overflow-hidden rounded-2xl">
-            <img
-              src={heroImage}
-              alt="Cucina professionale BianchiPro"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ==========================================================================
- * I) GUIDE — "Le Guide di BianchiPro"
- * ========================================================================== */
-function GuidesSection() {
-  /* Prendi le prime 3 guide */
-  const displayGuides = guides.slice(0, 3);
-
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
-      <h2 className="text-center text-3xl font-extrabold text-gray-900">
-        Le Guide di BianchiPro
-      </h2>
-      <p className="mx-auto mt-2 max-w-xl text-center text-gray-600">
-        Consigli e approfondimenti per aiutarti nella scelta delle attrezzature
-      </p>
-
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {displayGuides.map((guide) => (
-          <Link
-            key={guide.id}
-            to={`/guide/${guide.slug}`}
-            className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-green-300"
-          >
-            {/* Icona e categoria */}
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-50">
-                <BookOpen className="h-4 w-4 text-green-600" />
-              </div>
-              <span className="text-xs font-semibold text-green-700">{guide.category}</span>
-            </div>
-
-            {/* Titolo */}
-            <h3 className="mt-3 text-lg font-bold text-gray-900 group-hover:text-green-600 line-clamp-2">
-              {guide.title}
-            </h3>
-
-            {/* Estratto */}
-            <p className="mt-2 flex-1 text-sm text-gray-600 line-clamp-3">
-              {guide.excerpt}
-            </p>
-
-            {/* Tempo di lettura */}
-            <div className="mt-4 flex items-center gap-1 text-xs text-gray-500">
-              <Clock className="h-3.5 w-3.5" />
-              <span>{guide.readTime} min di lettura</span>
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {/* Link a tutte le guide */}
-      <div className="mt-10 text-center">
-        <Link
-          to="/guide"
-          className="inline-flex items-center gap-2 rounded-lg border border-[#6B9BD1] px-6 py-3 font-bold text-[#6B9BD1] hover:text-[#5A8AC0] hover:border-[#5A8AC0] transition-colors"
-        >
-          Tutte le guide
-          <ArrowRight className="h-5 w-5" />
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-/* ==========================================================================
- * HOMEPAGE — Composizione di tutte le sezioni (A -> I)
+ * HOMEPAGE — Composizione di tutte le sezioni
  * ========================================================================== */
 export default function HomePage() {
   return (
     <main>
-      {/* A) Hero con barra di ricerca */}
+      {/* A) Hero con branding e CTA */}
       <HeroSection />
 
-      {/* B) Etichette categorie sovrapposte al hero */}
-      <CategoryLabels />
+      {/* B) Barra benefici 6 card */}
+      <BenefitsBar />
 
-      {/* C) Tipologia di attivita */}
-      <BusinessTypeSection />
+      {/* C) Carousel banner promozionali */}
+      <PromoBannersCarousel />
 
-      {/* D) Proposte di valore */}
-      <ValuePropsSection />
+      {/* D) Chi siamo — About section */}
+      <AboutSection />
 
-      {/* E) Recensioni clienti */}
+      {/* E) Recensioni clienti Feedaty */}
       <ReviewsSection />
 
-      {/* F) Prodotti consigliati */}
-      <RecommendedProducts />
+      {/* F) Categorie in evidenza — 2 righe di 5 */}
+      <FeaturedCategoriesGrid />
 
-      {/* G) Categorie in evidenza */}
-      <FeaturedCategories />
+      {/* G) Category detail cards — 2×3 */}
+      <CategoryDetailCards />
 
-      {/* H) Sezione pausa — storia BianchiPro */}
-      <PauseSection />
+      {/* H) Proposte carousel */}
+      <ProposalsCarousel />
 
-      {/* I) Guide professionali */}
-      <GuidesSection />
+      {/* I) Prodotti selezionati carousel */}
+      <SelectedProductsCarousel />
     </main>
   );
 }

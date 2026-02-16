@@ -2,10 +2,12 @@ import { useState } from 'react';
 import {
   Shield, LayoutDashboard, Package, ShoppingCart, Users, FileText,
   Star, Settings, Search, Plus, Eye, Pencil, Trash2, Check, X,
-  ChevronRight, TrendingUp, UserPlus, BarChart3, Wrench, Lock
+  ChevronRight, TrendingUp, UserPlus, BarChart3, Wrench, Lock,
+  CreditCard, Save, CheckCircle,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { getStripePublishableKey, persistStripePublishableKey, isStripeConfigured } from '../../config/stripe';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -17,7 +19,8 @@ type AdminTab =
   | 'contenuti'
   | 'recensioni'
   | 'ricambi'
-  | 'sicurezza';
+  | 'sicurezza'
+  | 'impostazioni';
 
 interface OrderStatus {
   key: string;
@@ -114,6 +117,7 @@ const SIDEBAR_ITEMS: { id: AdminTab; label: string; icon: typeof LayoutDashboard
   { id: 'recensioni', label: 'Recensioni', icon: Star },
   { id: 'ricambi', label: 'Ricambi', icon: Wrench },
   { id: 'sicurezza', label: 'Sicurezza', icon: Lock },
+  { id: 'impostazioni', label: 'Impostazioni', icon: Settings },
 ];
 
 // ── Component ──────────────────────────────────────────
@@ -124,6 +128,13 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [clientSearch, setClientSearch] = useState('');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  /* Stripe settings state */
+  const [stripeKey, setStripeKey] = useState(() => {
+    const current = getStripePublishableKey();
+    return current.includes('INSERISCI') ? '' : current;
+  });
+  const [stripeSaved, setStripeSaved] = useState(false);
 
   if (!user || user.role !== 'admin') {
     return (
@@ -636,6 +647,114 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ IMPOSTAZIONI TAB ═══ */}
+          {activeTab === 'impostazioni' && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900">Impostazioni</h2>
+
+              {/* Stripe Configuration */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Configurazione Stripe</h3>
+                    <p className="text-xs text-gray-500">Gestisci le chiavi API per i pagamenti online</p>
+                  </div>
+                  <div className="ml-auto">
+                    {isStripeConfigured() ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                        <CheckCircle className="w-3.5 h-3.5" /> Configurato
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                        Non configurato
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Publishable Key */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Publishable Key (Frontend)
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      La chiave pubblica inizia con <code className="bg-gray-100 px-1 rounded">pk_test_</code> o <code className="bg-gray-100 px-1 rounded">pk_live_</code>
+                    </p>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={stripeKey}
+                        onChange={e => { setStripeKey(e.target.value); setStripeSaved(false); }}
+                        placeholder="pk_test_..."
+                        className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none font-mono"
+                      />
+                      <button
+                        onClick={() => {
+                          if (stripeKey.trim()) {
+                            persistStripePublishableKey(stripeKey.trim());
+                            setStripeSaved(true);
+                            setTimeout(() => setStripeSaved(false), 3000);
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white font-bold text-sm rounded-xl hover:bg-green-600 transition-colors"
+                      >
+                        <Save className="w-4 h-4" />
+                        Salva
+                      </button>
+                    </div>
+                    {stripeSaved && (
+                      <p className="mt-2 text-sm text-green-600 font-semibold flex items-center gap-1.5">
+                        <CheckCircle className="w-4 h-4" /> Chiave salvata con successo
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Secret Key info */}
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-semibold text-amber-900 mb-1">Secret Key (Backend)</p>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      La Secret Key (<code className="bg-amber-100 px-1 rounded">sk_test_...</code> o <code className="bg-amber-100 px-1 rounded">sk_live_...</code>)
+                      va configurata come variabile d'ambiente sul server (Netlify / Supabase), mai nel codice frontend.
+                    </p>
+                    <p className="text-xs text-amber-700 mt-2">
+                      Vai su <strong>Netlify &gt; Site Settings &gt; Environment Variables</strong> e aggiungi <code className="bg-amber-100 px-1 rounded">STRIPE_SECRET_KEY</code>.
+                    </p>
+                  </div>
+
+                  {/* How to get keys */}
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">Come ottenere le chiavi Stripe</p>
+                    <ol className="text-xs text-gray-600 space-y-1.5 list-decimal list-inside">
+                      <li>Crea un account su <strong>stripe.com</strong> se non ne hai uno</li>
+                      <li>Vai su <strong>Dashboard &gt; Developers &gt; API Keys</strong></li>
+                      <li>Copia la <strong>Publishable key</strong> e incollala qui sopra</li>
+                      <li>Copia la <strong>Secret key</strong> e aggiungila nelle variabili d'ambiente del server</li>
+                      <li>Per i test usa le chiavi <strong>test</strong>, per la produzione passa a <strong>live</strong></li>
+                    </ol>
+                  </div>
+
+                  {/* Remove key button */}
+                  {isStripeConfigured() && (
+                    <button
+                      onClick={() => {
+                        persistStripePublishableKey('');
+                        setStripeKey('');
+                        window.localStorage.removeItem('stripePublishableKey');
+                      }}
+                      className="text-sm text-red-600 font-semibold hover:text-red-700 transition-colors"
+                    >
+                      Rimuovi chiave Stripe salvata
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
