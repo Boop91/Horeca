@@ -12,3 +12,66 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# ══════════════════════════════════════════════════════════════
+# Headers di sicurezza HTTP
+# Applicati a tutte le pagine del sito per proteggere gli utenti
+# da attacchi XSS, clickjacking, MIME sniffing e altri vettori.
+# ══════════════════════════════════════════════════════════════
+[[headers]]
+  for = "/*"
+  [headers.values]
+
+    # ── Content Security Policy (CSP) ──────────────────────────
+    # Definisce quali risorse il browser può caricare.
+    # - 'self': solo risorse dallo stesso dominio
+    # - Supabase: per API backend e autenticazione
+    # - Stripe: per i pagamenti sicuri (js.stripe.com)
+    # - Google Fonts / gstatic: per il font Inter
+    # - data: / blob: per immagini inline e file generati
+    # - 'unsafe-inline' su style-src: necessario per Tailwind CSS
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://bianchipro.it; connect-src 'self' https://*.supabase.co https://api.stripe.com; frame-src https://js.stripe.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+
+    # ── X-Frame-Options ────────────────────────────────────────
+    # Impedisce che il sito venga inserito in un iframe esterno
+    # (protezione contro attacchi di clickjacking).
+    X-Frame-Options = "DENY"
+
+    # ── X-Content-Type-Options ─────────────────────────────────
+    # Impedisce al browser di "indovinare" il tipo MIME di un file.
+    # Protegge da attacchi dove un file .txt viene interpretato come .js
+    X-Content-Type-Options = "nosniff"
+
+    # ── Referrer-Policy ────────────────────────────────────────
+    # Controlla quante informazioni sull'URL vengono inviate
+    # quando l'utente clicca un link verso un sito esterno.
+    # "strict-origin-when-cross-origin" invia solo il dominio
+    # (non il percorso completo) verso siti esterni.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # ── Permissions-Policy ─────────────────────────────────────
+    # Disabilita funzionalità del browser non necessarie:
+    # - camera/microfono: non servono per un e-commerce
+    # - geolocation: non tracciamo la posizione
+    # - payment: gestiamo i pagamenti via Stripe iframe
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(self)"
+
+    # ── Strict-Transport-Security (HSTS) ───────────────────────
+    # Forza il browser a usare SOLO HTTPS per 1 anno (31536000 sec).
+    # includeSubDomains: anche i sottodomini devono usare HTTPS.
+    # Protegge da attacchi man-in-the-middle su connessioni HTTP.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+    # ── X-XSS-Protection ──────────────────────────────────────
+    # Filtro XSS legacy dei browser più vecchi.
+    # Valore "0" perché CSP è più affidabile; questo header
+    # può causare falsi positivi in alcuni browser.
+    X-XSS-Protection = "0"
+
+# ── Cache headers per assets statici ─────────────────────────
+# I file con hash nel nome (generati da Vite) possono essere
+# cachati aggressivamente perché il nome cambia ad ogni build.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

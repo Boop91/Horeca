@@ -1,0 +1,132 @@
+/**
+ * @file design-tokens.css
+ * @description Sistema di Design Tokens per bianchipro.it.
+ *
+ * I "design token" sono variabili CSS centralizzate che definiscono
+ * l'identità visiva dell'intero sito. Modificando un valore qui,
+ * il cambiamento si propaga automaticamente a tutti i componenti.
+ *
+ * Sezioni:
+ *   - Colori (primario, secondario, neutri, accento/stato)
+ *   - Tipografia (font family, dimensioni, pesi)
+ *   - Spaziatura (griglia a 4px)
+ *   - Bordi arrotondati (border-radius)
+ *   - Ombre (shadow)
+ *   - Transizioni (durate animate)
+ *   - Container (larghezza massima e padding responsivo)
+ *
+ * Convenzione di naming:
+ *   --color-{categoria}-{variante}   es. --color-primary-hover
+ *   --font-size-{scala}              es. --font-size-lg
+ *   --space-{moltiplicatore}         es. --space-4 = 4 * 4px = 16px
+ *   --radius-{dimensione}            es. --radius-md
+ *   --shadow-{intensita}             es. --shadow-lg
+ *   --transition-{velocita}          es. --transition-fast
+ *
+ * Il padding del container si adatta automaticamente al viewport
+ * tramite le media query in fondo al file.
+ *
+ * Utilizzato da: index.css, globals.css, tutti i componenti via Tailwind e CSS.
+ */
+
+:root {
+  /* === Colori === */
+  /* Primario - Verde: usato per pulsanti CTA (Call To Action), azioni principali */
+  --color-primary: #22c55e;
+  --color-primary-hover: #16a34a;
+  --color-primary-light: #dcfce7;
+  --color-primary-dark: #15803d;
+
+  /* Secondario - Blu: usato per elementi informativi e di supporto */
+  --color-secondary: #6B9BD1;
+  --color-secondary-hover: #5A8AC0;
+  --color-secondary-light: #dbeafe;
+
+  /* Neutri: testi, sfondi e bordi — dal piu' scuro al piu' chiaro */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #9ca3af;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  /* Accento / Stato: colori semantici per feedback all'utente */
+  --color-rating: #F0B858;
+  --color-discount: #fb923c;
+  --color-error: #d4183d;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /* === Tipografia === */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* === Spaziatura (griglia a 4px) === */
+  /* Ogni valore e' un multiplo di 4px per mantenere coerenza visiva */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+
+  /* === Bordi arrotondati === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* === Ombre === */
+  /* Ombre box-shadow con intensita' crescente per creare profondita' */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* === Transizioni animate === */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* === Container (contenitore principale) === */
+  --container-max: 1280px;
+  --container-padding: 1rem;
+}
+
+/* ── Media query responsive ────────────────────────────────────────
+   Il padding del container aumenta con la larghezza dello schermo
+   per sfruttare meglio lo spazio disponibile su schermi grandi. */
+@media (min-width: 640px) { /* Tablet (>=640px) */
+  :root {
+    --container-padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) { /* Desktop (>=1024px) */
+  :root {
+    --container-padding: 2rem;
+  }
+}

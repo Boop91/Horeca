@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
 export type UserRole = 'client' | 'pro' | 'admin';
 
@@ -41,6 +43,12 @@ export interface User {
   phone: string;
   role: UserRole;
   createdAt: string;
+  // B2B fields
+  ragione_sociale?: string;
+  partita_iva?: string;
+  codice_fiscale?: string;
+  codice_destinatario_sdi?: string;
+  pec?: string;
   // Pro-specific fields
   referralCode?: string;
   referralUsages?: ReferralUsage[];
@@ -57,11 +65,11 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   allUsers: User[];
-  login: (email: string, password: string) => { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
-  register: (data: RegisterData) => { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string }> | { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string }> | { success: boolean; error?: string; requiresEmailVerification?: boolean; email?: string };
   resendVerificationEmail: (email: string) => { success: boolean; error?: string };
   verifyEmail: (email: string) => { success: boolean; error?: string };
-  requestPasswordReset: (email: string) => { success: boolean; error?: string; temporaryPassword?: string };
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; error?: string; temporaryPassword?: string }> | { success: boolean; error?: string; temporaryPassword?: string };
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   addWalletTransaction: (transaction: Omit<WalletTransaction, 'id' | 'date'>) => void;
@@ -83,6 +91,10 @@ interface RegisterData {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+// ──────────────────────────────────────────────
+// Mock (localStorage) helpers – used when Supabase is not configured
+// ──────────────────────────────────────────────
 
 const STORAGE_KEY = 'bianchipro_users';
 const SESSION_KEY = 'bianchipro_session';
@@ -113,7 +125,6 @@ function loadUsers(): (User & { password: string })[] {
     }
   } catch { /* empty */ }
 
-  // Seed admin account
   const admin: User & { password: string } = {
     id: 'admin-001',
     email: 'admin@bianchipro.it',
@@ -175,7 +186,194 @@ function saveUsers(users: (User & { password: string })[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+// ──────────────────────────────────────────────
+// Supabase helpers
+// ──────────────────────────────────────────────
+
+function mapSupabaseUser(su: SupabaseUser, profile?: Record<string, unknown> | null): User {
+  return {
+    id: su.id,
+    email: su.email ?? '',
+    name: (profile?.name as string) ?? su.user_metadata?.name ?? '',
+    phone: (profile?.telefono as string) ?? su.phone ?? '',
+    role: ((profile?.ruolo as string) ?? 'client') as UserRole,
+    createdAt: su.created_at,
+    ragione_sociale: profile?.ragione_sociale as string | undefined,
+    partita_iva: profile?.partita_iva as string | undefined,
+    codice_fiscale: profile?.codice_fiscale as string | undefined,
+    codice_destinatario_sdi: profile?.codice_destinatario_sdi as string | undefined,
+    pec: profile?.pec as string | undefined,
+    walletBalance: 0,
+    walletTransactions: [],
+    withdrawalRequests: [],
+    emailVerified: !!su.email_confirmed_at,
+  };
+}
+
+async function fetchProfile(userId: string): Promise<Record<string, unknown> | null> {
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from('users_profile')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+  return data;
+}
+
+// ──────────────────────────────────────────────
+// Supabase Auth Provider
+// ──────────────────────────────────────────────
+
+function SupabaseAuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    // Get initial session
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+      setSession(s);
+      if (s?.user) {
+        const profile = await fetchProfile(s.user.id);
+        setUser(mapSupabaseUser(s.user, profile));
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, s) => {
+        setSession(s);
+        if (s?.user) {
+          const profile = await fetchProfile(s.user.id);
+          setUser(mapSupabaseUser(s.user, profile));
+        } else {
+          setUser(null);
+        }
+      },
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    if (!supabase) return { success: false, error: 'Supabase non configurato' };
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  };
+
+  const register = async (data: RegisterData) => {
+    if (!supabase) return { success: false, error: 'Supabase non configurato' };
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: { data: { name: data.name, phone: data.phone, role: data.role } },
+    });
+    if (error) return { success: false, error: error.message };
+
+    // Create profile row
+    if (authData.user) {
+      await supabase.from('users_profile').insert({
+        user_id: authData.user.id,
+        telefono: data.phone,
+        ruolo: data.role === 'pro' ? 'client' : data.role, // DB only has admin|client
+      });
+    }
+
+    return { success: true, requiresEmailVerification: true, email: data.email };
+  };
+
+  const resendVerificationEmail = (_email: string) => {
+    // Supabase handles this via resend endpoint; keeping sync signature for compat
+    if (supabase) {
+      supabase.auth.resend({ type: 'signup', email: _email });
+    }
+    return { success: true };
+  };
+
+  const verifyEmail = (_email: string) => {
+    // Handled automatically by Supabase email confirmation link
+    return { success: true };
+  };
+
+  const requestPasswordReset = async (email: string) => {
+    if (!supabase) return { success: false, error: 'Supabase non configurato' };
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  };
+
+  const logout = () => {
+    supabase?.auth.signOut();
+    setUser(null);
+    setSession(null);
+  };
+
+  const updateUser = (updates: Partial<User>) => {
+    if (!session?.user || !supabase) return;
+    // Update profile in Supabase (fire-and-forget)
+    const profileUpdates: Record<string, unknown> = {};
+    if (updates.ragione_sociale !== undefined) profileUpdates.ragione_sociale = updates.ragione_sociale;
+    if (updates.partita_iva !== undefined) profileUpdates.partita_iva = updates.partita_iva;
+    if (updates.codice_fiscale !== undefined) profileUpdates.codice_fiscale = updates.codice_fiscale;
+    if (updates.codice_destinatario_sdi !== undefined) profileUpdates.codice_destinatario_sdi = updates.codice_destinatario_sdi;
+    if (updates.pec !== undefined) profileUpdates.pec = updates.pec;
+    if (updates.phone !== undefined) profileUpdates.telefono = updates.phone;
+
+    if (Object.keys(profileUpdates).length > 0) {
+      supabase.from('users_profile').update(profileUpdates).eq('user_id', session.user.id).then();
+    }
+
+    setUser(prev => prev ? { ...prev, ...updates } : null);
+  };
+
+  // Wallet operations are not yet backed by Supabase – local state stubs
+  const addWalletTransaction = (_transaction: Omit<WalletTransaction, 'id' | 'date'>) => {};
+  const depositToWallet = (_amount: number) => {};
+  const requestWithdrawal = (_amount: number, _method: 'bank_transfer' | 'card', _iban?: string) => ({ success: false as const, error: 'Non disponibile in modalita Supabase' });
+  const approveWithdrawal = (_requestId: string, _userId: string) => {};
+  const rejectWithdrawal = (_requestId: string, _userId: string) => {};
+  const applyReferralCode = (_code: string, _orderId: string, _orderTotal: number, _shippingCost: number, _buyerName: string, _buyerId: string) => ({ success: false as const, discount: 0, error: 'Non disponibile in modalita Supabase' });
+  const getAllWithdrawalRequests = () => [] as (WithdrawalRequest & { userEmail: string })[];
+  const getUserById = (_id: string) => undefined as User | undefined;
+
+  if (loading) {
+    return null; // or a loading spinner
+  }
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      allUsers: [],
+      login,
+      register,
+      resendVerificationEmail,
+      verifyEmail,
+      requestPasswordReset,
+      logout,
+      updateUser,
+      addWalletTransaction,
+      requestWithdrawal,
+      approveWithdrawal,
+      rejectWithdrawal,
+      applyReferralCode,
+      getAllWithdrawalRequests,
+      getUserById,
+      depositToWallet,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Mock Auth Provider (localStorage fallback)
+// ──────────────────────────────────────────────
+
+function MockAuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<(User & { password: string })[]>(() => loadUsers());
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
     try {
@@ -238,7 +436,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true, requiresEmailVerification: true, email: newUser.email };
   };
 
-
   const resendVerificationEmail = (email: string) => {
     const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (!target) return { success: false, error: 'Utente non trovato' };
@@ -260,7 +457,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ));
     return { success: true };
   };
-
 
   const requestPasswordReset = (email: string) => {
     const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
@@ -470,6 +666,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+// ──────────────────────────────────────────────
+// Exported provider – switches automatically
+// ──────────────────────────────────────────────
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  if (isSupabaseConfigured()) {
+    return <SupabaseAuthProvider>{children}</SupabaseAuthProvider>;
+  }
+  return <MockAuthProvider>{children}</MockAuthProvider>;
 }
 
 export function useAuth() {
