@@ -1,5 +1,5 @@
 import {
-  Search, User, Heart, ShoppingCart, ChevronDown, Shield, LogOut,
+  Search, User, Heart, ShoppingCart, ChevronRight, Shield, LogOut,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -84,43 +84,43 @@ export default function Header({
 
       {/* ── ROW 2: logo + search + icone (sfondo bianco) ── */}
       <div className="bg-white border-b border-gray-200">
-        <div className="mx-auto flex max-w-[1260px] items-center justify-between gap-6 px-5 py-3">
+        <div className="mx-auto flex max-w-[1260px] items-center justify-between gap-8 px-6 py-4">
 
           {/* Logo B. con arco tricolore */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity">
-            <div className="relative w-10 h-10 flex items-center justify-center">
-              <svg viewBox="0 0 40 40" className="absolute inset-0 w-full h-full">
-                <path d="M8 28 A14 14 0 0 1 20 6" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" />
-                <path d="M20 6 A14 14 0 0 1 26 8" fill="none" stroke="#e5e7eb" strokeWidth="3" strokeLinecap="round" />
-                <path d="M26 8 A14 14 0 0 1 32 14" fill="none" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 hover:opacity-80 transition-opacity">
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              <svg viewBox="0 0 48 48" className="absolute inset-0 w-full h-full">
+                <path d="M8 36 A20 20 0 0 1 24 4" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" />
+                <path d="M24 4 A20 20 0 0 1 33 8" fill="none" stroke="#e5e7eb" strokeWidth="3.5" strokeLinecap="round" />
+                <path d="M33 8 A20 20 0 0 1 40 16" fill="none" stroke="#ef4444" strokeWidth="3.5" strokeLinecap="round" />
               </svg>
-              <span className="text-xl font-black text-gray-900">B.</span>
+              <span className="text-2xl font-black text-gray-900">B.</span>
             </div>
-            <span className="text-[22px] font-black tracking-tight text-gray-900">BIANCHI</span>
+            <span className="text-[24px] font-black tracking-tight text-gray-900">BIANCHI</span>
           </Link>
 
           {/* Search */}
-          <div className="hidden flex-1 sm:block" style={{ maxWidth: 480 }}>
+          <div className="hidden flex-1 sm:block" style={{ maxWidth: 580 }}>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Cerca nel catalogo"
-                className="h-10 w-full rounded-full border border-gray-300 bg-gray-50 pl-9 pr-[90px] text-sm text-gray-800 placeholder:text-gray-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-100"
+                className="h-11 w-full rounded-full border border-gray-300 bg-gray-50 pl-10 pr-[100px] text-sm text-gray-800 placeholder:text-gray-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-100"
               />
-              <button className="absolute right-1 top-1 bottom-1 rounded-full bg-green-600 px-5 text-[13px] font-bold text-white hover:bg-green-700 transition-colors">
+              <button className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full bg-green-600 px-5 text-[13px] font-bold text-white hover:bg-green-700 transition-colors">
                 Cerca
               </button>
             </div>
           </div>
 
           {/* Icons */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {/* Account */}
             <div className="relative" ref={userMenuRef}>
               <button onClick={onAccount} className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-gray-600 hover:text-gray-900 transition-colors">
                 <User className="h-5 w-5" />
-                <span className="hidden text-[13px] font-semibold sm:inline">{user ? shortName : 'Login'}</span>
+                {user && shortName && <span className="hidden text-[13px] font-semibold sm:inline">{shortName}</span>}
               </button>
               {userMenuOpen && user && (
                 <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
@@ -178,10 +178,10 @@ export default function Header({
         <div className="mx-auto max-w-[1260px] px-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <ul className="flex items-center gap-0 whitespace-nowrap">
             <li>
-              <Link to="/" className={`block px-3 py-2.5 text-[13px] font-medium transition-colors ${location.pathname === '/' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>Home</Link>
+              <Link to="/" className={`block px-4 py-3 text-[13px] font-semibold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-gray-200 hover:text-white'}`}>Home</Link>
             </li>
             <li>
-              <Link to="/chi-siamo" className={`block px-3 py-2.5 text-[13px] font-medium transition-colors ${location.pathname === '/chi-siamo' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>La nostra Azienda</Link>
+              <Link to="/chi-siamo" className={`block px-4 py-3 text-[13px] font-semibold transition-colors ${location.pathname === '/chi-siamo' ? 'text-white' : 'text-gray-200 hover:text-white'}`}>La nostra Azienda</Link>
             </li>
 
             {catalogMenu.map(({ key, label }) => {
@@ -192,20 +192,20 @@ export default function Header({
                   <Link
                     to={`/categoria/${key}`}
                     onClick={() => setActiveCatalogKey(null)}
-                    className={`flex items-center gap-1 px-3 py-2.5 text-[13px] font-medium transition-colors ${open || current ? 'text-white' : 'text-gray-300 hover:text-white'}`}
+                    className={`flex items-center gap-1 px-4 py-3 text-[13px] font-semibold transition-colors ${open || current ? 'text-white' : 'text-gray-200 hover:text-white'}`}
                   >
                     {label}
-                    <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+                    <ChevronRight className={`h-3 w-3 transition-transform ${open ? 'rotate-90' : ''}`} />
                   </Link>
                 </li>
               );
             })}
 
             <li>
-              <Link to="/faq" className={`block px-3 py-2.5 text-[13px] font-medium transition-colors ${location.pathname === '/faq' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>Domande Frequenti</Link>
+              <Link to="/faq" className={`block px-4 py-3 text-[13px] font-semibold transition-colors ${location.pathname === '/faq' ? 'text-white' : 'text-gray-200 hover:text-white'}`}>Domande Frequenti</Link>
             </li>
             <li>
-              <Link to="/contatti" className={`block px-3 py-2.5 text-[13px] font-medium transition-colors ${location.pathname === '/contatti' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>Contattaci</Link>
+              <Link to="/contatti" className={`block px-4 py-3 text-[13px] font-semibold transition-colors ${location.pathname === '/contatti' ? 'text-white' : 'text-gray-200 hover:text-white'}`}>Contattaci</Link>
             </li>
           </ul>
         </div>

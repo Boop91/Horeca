@@ -10,15 +10,6 @@ import { toast } from 'sonner';
 
 /* ═══════ DATI STATICI ═══════ */
 
-const categoryPills = [
-  { label: 'Linea Caldo', slug: 'linea-caldo' },
-  { label: 'Linea Freddo', slug: 'linea-freddo' },
-  { label: 'Preparazione', slug: 'preparazione' },
-  { label: 'Carrelli ed Arredo', slug: 'carrelli-arredo' },
-  { label: 'Hotellerie', slug: 'hotellerie' },
-  { label: 'Igiene e Pulizia', slug: 'igiene' },
-];
-
 const selectedProductSlugs = [
   'abbattitore-forcar-ab5514-14-teglie-gn1-1',
   'forno-pizzeria-fimar-fp-elettrico-1-camera',
@@ -69,7 +60,7 @@ function HeroSection() {
   return (
     <section className="relative flex min-h-[80vh] items-center overflow-hidden">
       <img src={heroImage} alt="Cucina professionale" className="absolute inset-0 h-full w-full object-cover" />
-      <div className="relative z-10 mx-auto w-full max-w-[1260px] px-5 py-20">
+      <div className="relative z-10 mx-auto w-full max-w-[1260px] px-6 py-20">
         <div className="max-w-lg rounded-2xl bg-white/80 p-10 shadow-lg backdrop-blur-md">
           <span className="text-sm font-semibold text-green-700">Bianchipro</span>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight text-gray-900 lg:text-[44px]">
@@ -89,22 +80,7 @@ function HeroSection() {
   );
 }
 
-/* ═══════ 2 · GREEN CATEGORY PILLS ═══════ */
-function CategoryPillsRow() {
-  return (
-    <section className="border-b border-gray-100 bg-white">
-      <div className="mx-auto flex max-w-[1260px] flex-wrap items-center justify-center gap-3 px-5 py-5">
-        {categoryPills.map((p) => (
-          <Link key={p.slug} to={`/categoria/${p.slug}`} className="rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700">
-            {p.label}
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ═══════ 3 · PRODOTTI SELEZIONATI (bozza: Prodotti selezionati.png) ═══════ */
+/* ═══════ 2 · PRODOTTI SELEZIONATI (bozza: Prodotti selezionati.png) ═══════ */
 function SelectedProductsCarousel() {
   const { addItem } = useCart();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -430,7 +406,6 @@ export default function HomePage() {
   return (
     <main>
       <HeroSection />
-      <CategoryPillsRow />
       <SelectedProductsCarousel />
       <BusinessTypeSection />
       <ProposalsSection />
