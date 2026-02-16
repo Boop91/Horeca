@@ -115,17 +115,17 @@ export default function Header({
             <span className="text-xl font-black tracking-tight text-gray-900">BIANCHI</span>
           </Link>
 
-          {/* Search — CORTA, larghezza fissa, tra logo e icone */}
-          <div className="hidden sm:block" style={{ width: 300 }}>
+          {/* Search — molto corta, 80% piu piccola */}
+          <div className="hidden sm:block" style={{ width: 200 }}>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Cerca nel catalogo"
-                className="h-10 w-full rounded-full border border-gray-300 bg-gray-50 pl-10 pr-20 text-sm text-gray-800 placeholder:text-gray-400 focus:border-green-500 focus:outline-none"
-                style={{ fontSize: 13 }}
+                placeholder="Cerca"
+                className="h-9 w-full rounded-full border border-gray-300 bg-gray-50 pl-9 pr-16 text-gray-800 placeholder:text-gray-400 focus:border-green-500 focus:outline-none"
+                style={{ fontSize: 12 }}
               />
-              <button className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full px-4 text-xs font-bold text-white" style={{ backgroundColor: '#16a34a' }}>
+              <button className="absolute right-1 top-1 bottom-1 rounded-full px-3 font-bold text-white" style={{ backgroundColor: '#16a34a', fontSize: 11 }}>
                 Cerca
               </button>
             </div>
@@ -190,15 +190,15 @@ export default function Header({
         </div>
       </div>
 
-      {/* ── ROW 3: dark navigation bar — sfondo SCURO con inline style ── */}
+      {/* ── ROW 3: dark navigation bar — scritte e icone PIU GRANDI ── */}
       <nav style={darkBg}>
         <div className="mx-auto px-5 overflow-x-auto" style={{ maxWidth: 1100, scrollbarWidth: 'none' }}>
           <ul className="flex items-center whitespace-nowrap">
             <li>
-              <Link to="/" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/' ? '#ffffff' : '#d1d5db' }}>Home</Link>
+              <Link to="/" className="block px-4 py-3 font-semibold transition-colors" style={{ color: location.pathname === '/' ? '#ffffff' : '#d1d5db', fontSize: 14 }}>Home</Link>
             </li>
             <li>
-              <Link to="/chi-siamo" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/chi-siamo' ? '#ffffff' : '#d1d5db' }}>La nostra Azienda</Link>
+              <Link to="/chi-siamo" className="block px-4 py-3 font-semibold transition-colors" style={{ color: location.pathname === '/chi-siamo' ? '#ffffff' : '#d1d5db', fontSize: 14 }}>La nostra Azienda</Link>
             </li>
 
             {catalogMenu.map(({ key, label }) => {
@@ -210,22 +210,22 @@ export default function Header({
                   <Link
                     to={`/categoria/${key}`}
                     onClick={() => setActiveCatalogKey(null)}
-                    className="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold transition-colors"
-                    style={{ color: open || current ? '#ffffff' : '#d1d5db' }}
+                    className="flex items-center gap-2 px-4 py-3 font-semibold transition-colors"
+                    style={{ color: open || current ? '#ffffff' : '#d1d5db', fontSize: 14 }}
                   >
-                    {CatIcon && <CatIcon className="h-3.5 w-3.5" />}
+                    {CatIcon && <CatIcon style={{ width: 16, height: 16 }} />}
                     {label}
-                    <ChevronRight className="h-2.5 w-2.5" style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                    <ChevronRight style={{ width: 12, height: 12, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
                   </Link>
                 </li>
               );
             })}
 
             <li>
-              <Link to="/faq" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/faq' ? '#ffffff' : '#d1d5db' }}>Domande Frequenti</Link>
+              <Link to="/faq" className="block px-4 py-3 font-semibold transition-colors" style={{ color: location.pathname === '/faq' ? '#ffffff' : '#d1d5db', fontSize: 14 }}>Domande Frequenti</Link>
             </li>
             <li>
-              <Link to="/contatti" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/contatti' ? '#ffffff' : '#d1d5db' }}>Contattaci</Link>
+              <Link to="/contatti" className="block px-4 py-3 font-semibold transition-colors" style={{ color: location.pathname === '/contatti' ? '#ffffff' : '#d1d5db', fontSize: 14 }}>Contattaci</Link>
             </li>
           </ul>
         </div>
