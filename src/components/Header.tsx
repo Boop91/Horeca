@@ -1,12 +1,25 @@
 import {
   Search, User, Heart, ShoppingCart, ChevronRight, Shield, LogOut,
+  Flame, Snowflake, UtensilsCrossed, LayoutGrid, Building2, SprayCan, Wrench, Tag,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { catalogMenu } from '../data/catalogMenu';
 import type { CatalogMenuItem } from '../data/catalogMenu';
+
+const categoryIcons: Record<string, LucideIcon> = {
+  'linea-caldo': Flame,
+  'linea-freddo': Snowflake,
+  'preparazione': UtensilsCrossed,
+  'carrelli-arredo': LayoutGrid,
+  'hotellerie': Building2,
+  'igiene': SprayCan,
+  'ricambi': Wrench,
+  'seconda-scelta': Tag,
+};
 
 interface HeaderProps {
   cartItemCount: number;
@@ -187,13 +200,15 @@ export default function Header({
             {catalogMenu.map(({ key, label }) => {
               const open = activeCatalogKey === key;
               const current = location.pathname.startsWith(`/categoria/${key}`);
+              const CatIcon = categoryIcons[key];
               return (
                 <li key={key} onMouseEnter={() => catEnter(key)} onMouseLeave={catLeave}>
                   <Link
                     to={`/categoria/${key}`}
                     onClick={() => setActiveCatalogKey(null)}
-                    className={`flex items-center gap-1 px-4 py-3 text-[13px] font-semibold transition-colors ${open || current ? 'text-white' : 'text-gray-200 hover:text-white'}`}
+                    className={`flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold transition-colors ${open || current ? 'text-white' : 'text-gray-200 hover:text-white'}`}
                   >
+                    {CatIcon && <CatIcon className="h-3.5 w-3.5" />}
                     {label}
                     <ChevronRight className={`h-3 w-3 transition-transform ${open ? 'rotate-90' : ''}`} />
                   </Link>

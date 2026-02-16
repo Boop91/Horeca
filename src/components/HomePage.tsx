@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Star } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Star, Headphones, Truck, CheckCircle, ShieldCheck } from 'lucide-react';
 import heroImage from '../assets/f4ed0b934aabb9cdf06af64854509a5ac97f8256.png';
 import { catalogMenu } from '../data/catalogMenu';
 import { realProducts } from '../data/products/realProducts';
@@ -75,6 +75,29 @@ function HeroSection() {
             Inizia da qui <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════ 1b · BARRA BENEFICI (sotto hero) ═══════ */
+const heroBenefits = [
+  { icon: Headphones, title: 'Esperti al tuo fianco' },
+  { icon: Truck, title: 'Spedizioni tracciabili' },
+  { icon: CheckCircle, title: 'Prodotti selezionati' },
+  { icon: ShieldCheck, title: 'Pagamenti sicuri' },
+];
+
+function BenefitsBar() {
+  return (
+    <section className="border-b border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-[1260px] items-center justify-between gap-6 overflow-x-auto px-5 py-4" style={{ scrollbarWidth: 'none' }}>
+        {heroBenefits.map((b) => (
+          <div key={b.title} className="flex flex-shrink-0 items-center gap-2.5">
+            <b.icon className="h-5 w-5 text-green-600" />
+            <span className="whitespace-nowrap text-sm font-semibold text-gray-700">{b.title}</span>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -182,28 +205,48 @@ function BusinessTypeSection() {
 }
 
 /* ═══════ 5 · PROPOSTE (bozza: Proposte.png) ═══════ */
+const promoButtonColors = [
+  'bg-amber-500 hover:bg-amber-600',
+  'bg-green-600 hover:bg-green-700',
+  'bg-indigo-500 hover:bg-indigo-600',
+];
+
 function ProposalsSection() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scroll = (dir: 'l' | 'r') => {
+    scrollRef.current?.scrollBy({ left: dir === 'l' ? -360 : 360, behavior: 'smooth' });
+  };
+
   return (
     <section className="bg-gradient-to-b from-green-50/60 to-gray-50 py-16">
       <div className="mx-auto max-w-[1260px] px-5">
         <h2 className="text-center text-2xl font-extrabold text-gray-900">Scopri le nostre proposte</h2>
         <p className="mt-2 text-center text-sm text-gray-500">Migliori offerte selezionate</p>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {promoBanners.map((b, i) => (
-            <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-lg">
-              <div className="h-48 overflow-hidden">
-                <img src={heroImage} alt={b.title} className="h-full w-full object-cover" />
+        <div className="relative mt-10">
+          <button onClick={() => scroll('l')} className="absolute -left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <button onClick={() => scroll('r')} className="absolute -right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-white shadow-md hover:bg-green-700">
+            <ArrowRight className="h-4 w-4" />
+          </button>
+
+          <div ref={scrollRef} className="flex gap-6 overflow-x-auto scroll-smooth pb-2" style={{ scrollbarWidth: 'none' }}>
+            {promoBanners.map((b, i) => (
+              <div key={i} className="w-[360px] flex-shrink-0 overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-lg">
+                <div className="h-48 overflow-hidden">
+                  <img src={heroImage} alt={b.title} className="h-full w-full object-cover" />
+                </div>
+                <div className="p-5">
+                  <h3 className="mb-1.5 text-base font-bold text-gray-900">{b.title}</h3>
+                  <p className="mb-4 text-xs leading-relaxed text-gray-500">{b.desc}</p>
+                  <Link to={b.link} className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white transition-colors ${promoButtonColors[i]}`}>
+                    scopri l&apos;offerta
+                  </Link>
+                </div>
               </div>
-              <div className="bg-gray-900/90 p-5">
-                <h3 className="mb-1.5 text-base font-bold text-white">{b.title}</h3>
-                <p className="mb-4 text-xs leading-relaxed text-gray-400">{b.desc}</p>
-                <Link to={b.link} className="inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-green-700">
-                  scopri l&apos;offerta
-                </Link>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -297,11 +340,11 @@ function CategoryDetailCards() {
 
                 {/* 4 pill 2x2 */}
                 <div className="mb-4 grid grid-cols-2 gap-2">
-                  {pills.map((g, idx) => (
+                  {pills.map((g) => (
                     <Link
                       key={g.slug}
                       to={`/categoria/${cat.slug}/${g.slug}`}
-                      className={`truncate rounded-full px-3 py-2 text-center text-xs font-semibold text-white transition-opacity hover:opacity-80 ${idx < 2 ? 'bg-green-600' : 'bg-[#3a5068]'}`}
+                      className="truncate rounded-full bg-green-100 px-3 py-2 text-center text-xs font-semibold text-green-700 transition-colors hover:bg-green-200"
                     >
                       {g.title}
                     </Link>
@@ -406,6 +449,7 @@ export default function HomePage() {
   return (
     <main>
       <HeroSection />
+      <BenefitsBar />
       <SelectedProductsCarousel />
       <BusinessTypeSection />
       <ProposalsSection />
