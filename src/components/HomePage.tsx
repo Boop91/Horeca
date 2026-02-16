@@ -377,7 +377,7 @@ function FeaturedCategoriesGrid() {
 }
 
 /* ==========================================================================
- * G) CATEGORY DETAIL CARDS — 6 card in griglia 2×3
+ * G) CATEGORY DETAIL CARDS — 6 card in griglia 3×2
  * ========================================================================== */
 function CategoryDetailCards() {
   const detailCategories = detailCategoryKeys
@@ -400,43 +400,48 @@ function CategoryDetailCards() {
             return (
               <div
                 key={cat.key}
-                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="rounded-xl border border-blue-100 bg-white overflow-hidden hover:shadow-lg transition-shadow"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center overflow-hidden">
-                    <img src={heroImage} alt={cat.label} className="h-full w-full object-cover" />
+                <div className="flex gap-0">
+                  {/* Immagine prodotto a sinistra */}
+                  <div className="w-36 flex-shrink-0 bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
+                    <img
+                      src={cat.image || heroImage}
+                      alt={cat.label}
+                      className="h-28 w-28 object-contain"
+                    />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">{cat.label}</h3>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-4">
-                  {cat.description}
-                </p>
 
-                {/* Tag sottocategorie */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {cat.groups.slice(0, 4).map((group) => (
+                  {/* Contenuto a destra */}
+                  <div className="flex-1 p-5 flex flex-col">
+                    <h3 className="text-base font-bold text-gray-900 mb-1">{cat.label}</h3>
+                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
+                      {cat.description}
+                    </p>
+
+                    {/* 4 sottocategorie in griglia 2×2 */}
+                    <div className="grid grid-cols-2 gap-1.5 mb-4">
+                      {cat.groups.slice(0, 4).map((group) => (
+                        <Link
+                          key={group.slug}
+                          to={`/categoria/${cat.slug}/${group.slug}`}
+                          className="rounded-full bg-slate-700 px-2.5 py-1 text-[10px] font-semibold text-white text-center truncate hover:bg-slate-600 transition-colors"
+                        >
+                          {group.title}
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Pulsante verde */}
                     <Link
-                      key={group.slug}
-                      to={`/categoria/${cat.slug}/${group.slug}`}
-                      className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors"
+                      to={`/categoria/${cat.slug}`}
+                      className="mt-auto inline-flex items-center gap-1.5 text-sm font-bold text-green-600 hover:text-green-700 transition-colors"
                     >
-                      {group.title}
+                      visualizza tutto
+                      <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
-                  ))}
-                  {cat.groups.length > 4 && (
-                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-400">
-                      +{cat.groups.length - 4}
-                    </span>
-                  )}
+                  </div>
                 </div>
-
-                <Link
-                  to={`/categoria/${cat.slug}`}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors"
-                >
-                  Visualizza tutto
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
               </div>
             );
           })}
