@@ -12,7 +12,7 @@ interface AuthModalProps {
 }
 
 const emailApiCandidates = (path: string) => [
-  `/.netlify/functions/${path}`,
+  `/api/${path}`,
   `https://${projectId}.supabase.co/functions/v1/make-server-d9742687/${path}`,
 ];
 

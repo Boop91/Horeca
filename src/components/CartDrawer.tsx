@@ -70,7 +70,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
 
     const fetchQuote = async () => {
       try {
-        const response = await fetch('/.netlify/functions/preventivo', {
+        const response = await fetch('/api/preventivo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items: normalizedItems }),

@@ -15,7 +15,7 @@ interface CheckoutModalProps {
 
 function apiCandidates(path: string) {
   return [
-    `/.netlify/functions/${path}`,
+    `/api/${path}`,
     `https://${projectId}.supabase.co/functions/v1/make-server-d9742687/${path}`,
   ];
 }

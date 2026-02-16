@@ -12,17 +12,17 @@ export default function BackendStatus() {
     const checkBackend = async () => {
       try {
         if (isLocalDev) {
-          // In sviluppo locale (vite dev) le Netlify Functions potrebbero non essere instradate.
+          // In sviluppo locale (vite dev) le Pages Functions potrebbero non essere instradate.
           // Evitiamo un falso 'offline' e usiamo il calcolo locale nel carrello.
           setBackendStatus('online');
           setStripeConfigured(isStripeConfigured());
           return;
         }
 
-        const healthGet = await fetch('/.netlify/functions/preventivo', { method: 'GET' });
+        const healthGet = await fetch('/api/preventivo', { method: 'GET' });
         const health = healthGet.ok
           ? healthGet
-          : await fetch('/.netlify/functions/preventivo', {
+          : await fetch('/api/preventivo', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ items: [] }),
