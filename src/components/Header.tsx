@@ -87,21 +87,24 @@ export default function Header({
     else setAuthModalOpen(true);
   };
 
+  /* ── colori inline per sicurezza (Tailwind arbitrary values possono non generarsi) ── */
+  const darkBg = { backgroundColor: '#2d3a4a' } as const;
+
   return (
     <header ref={headerRef} className="sticky top-0 z-50 shadow-md">
 
       {/* ── ROW 1: barra verde top ── */}
-      <div className="bg-green-600 py-1 text-center text-[11px] font-semibold tracking-wide text-white">
+      <div className="py-1 text-center text-[11px] font-semibold tracking-wide text-white" style={{ backgroundColor: '#16a34a' }}>
         Vendita riservata solo a possessori di Partita IVA
       </div>
 
       {/* ── ROW 2: logo + search + icone ── */}
       <div className="bg-white border-b border-gray-200">
-        <div className="mx-auto flex max-w-[1100px] items-center gap-8 px-6 py-3">
+        <div className="mx-auto flex items-center justify-between gap-6 px-6 py-3" style={{ maxWidth: 1100 }}>
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 hover:opacity-80 transition-opacity">
-            <div className="relative w-10 h-10 flex items-center justify-center">
+            <div className="relative flex items-center justify-center" style={{ width: 40, height: 40 }}>
               <svg viewBox="0 0 48 48" className="absolute inset-0 w-full h-full">
                 <path d="M8 36 A20 20 0 0 1 24 4" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" />
                 <path d="M24 4 A20 20 0 0 1 33 8" fill="none" stroke="#e5e7eb" strokeWidth="3.5" strokeLinecap="round" />
@@ -112,23 +115,24 @@ export default function Header({
             <span className="text-xl font-black tracking-tight text-gray-900">BIANCHI</span>
           </Link>
 
-          {/* Search — centrata, dimensione giusta */}
-          <div className="hidden flex-1 sm:block" style={{ maxWidth: 480 }}>
+          {/* Search — CORTA, larghezza fissa, tra logo e icone */}
+          <div className="hidden sm:block" style={{ width: 300 }}>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Cerca nel catalogo"
-                className="h-10 w-full rounded-full border border-gray-300 bg-gray-50 pl-11 pr-24 text-sm text-gray-800 placeholder:text-gray-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-100"
+                className="h-10 w-full rounded-full border border-gray-300 bg-gray-50 pl-10 pr-20 text-sm text-gray-800 placeholder:text-gray-400 focus:border-green-500 focus:outline-none"
+                style={{ fontSize: 13 }}
               />
-              <button className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full bg-green-600 px-5 text-xs font-bold text-white hover:bg-green-700 transition-colors">
+              <button className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full px-4 text-xs font-bold text-white" style={{ backgroundColor: '#16a34a' }}>
                 Cerca
               </button>
             </div>
           </div>
 
           {/* Icons — destra */}
-          <div className="flex items-center gap-3 ml-auto">
+          <div className="flex items-center gap-3">
             {/* Account */}
             <div className="relative" ref={userMenuRef}>
               <button onClick={onAccount} className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-gray-600 hover:text-gray-900 transition-colors">
@@ -162,7 +166,7 @@ export default function Header({
             <button onClick={onFavoritesClick} className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Preferiti">
               <Heart className={`h-5 w-5 ${favoritesCount > 0 ? 'fill-green-600 text-green-600' : ''}`} />
               {favoritesCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-green-600 px-1 text-[10px] font-bold text-white">{favoritesCount}</span>
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white" style={{ backgroundColor: '#16a34a' }}>{favoritesCount}</span>
               )}
             </button>
 
@@ -170,7 +174,7 @@ export default function Header({
             <button onClick={onCartClick} className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Carrello">
               <ShoppingCart className="h-5 w-5" />
               {cartItemCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-green-600 px-1 text-[10px] font-bold text-white">{cartItemCount}</span>
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white" style={{ backgroundColor: '#16a34a' }}>{cartItemCount}</span>
               )}
             </button>
           </div>
@@ -180,21 +184,21 @@ export default function Header({
         <div className="px-5 pb-3 sm:hidden">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Cerca nel catalogo" className="h-10 w-full rounded-full border border-gray-300 bg-gray-50 pl-10 pr-20 text-sm placeholder:text-gray-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-100" />
-            <button className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full bg-green-600 px-4 text-xs font-bold text-white">Cerca</button>
+            <input type="text" placeholder="Cerca nel catalogo" className="h-10 w-full rounded-full border border-gray-300 bg-gray-50 pl-10 pr-20 text-sm placeholder:text-gray-400 focus:border-green-500 focus:outline-none" />
+            <button className="absolute right-1.5 top-1.5 bottom-1.5 rounded-full px-4 text-xs font-bold text-white" style={{ backgroundColor: '#16a34a' }}>Cerca</button>
           </div>
         </div>
       </div>
 
-      {/* ── ROW 3: dark navigation bar ── */}
-      <nav className="bg-[#2d3a4a]">
-        <div className="mx-auto max-w-[1100px] px-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+      {/* ── ROW 3: dark navigation bar — sfondo SCURO con inline style ── */}
+      <nav style={darkBg}>
+        <div className="mx-auto px-5 overflow-x-auto" style={{ maxWidth: 1100, scrollbarWidth: 'none' }}>
           <ul className="flex items-center whitespace-nowrap">
             <li>
-              <Link to="/" className={`block px-3.5 py-2.5 text-[12px] font-semibold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>Home</Link>
+              <Link to="/" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/' ? '#ffffff' : '#d1d5db' }}>Home</Link>
             </li>
             <li>
-              <Link to="/chi-siamo" className={`block px-3.5 py-2.5 text-[12px] font-semibold transition-colors ${location.pathname === '/chi-siamo' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>La nostra Azienda</Link>
+              <Link to="/chi-siamo" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/chi-siamo' ? '#ffffff' : '#d1d5db' }}>La nostra Azienda</Link>
             </li>
 
             {catalogMenu.map(({ key, label }) => {
@@ -206,41 +210,44 @@ export default function Header({
                   <Link
                     to={`/categoria/${key}`}
                     onClick={() => setActiveCatalogKey(null)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2.5 text-[12px] font-semibold transition-colors ${open || current ? 'text-white' : 'text-gray-300 hover:text-white'}`}
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold transition-colors"
+                    style={{ color: open || current ? '#ffffff' : '#d1d5db' }}
                   >
                     {CatIcon && <CatIcon className="h-3.5 w-3.5" />}
                     {label}
-                    <ChevronRight className={`h-2.5 w-2.5 transition-transform ${open ? 'rotate-90' : ''}`} />
+                    <ChevronRight className="h-2.5 w-2.5" style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
                   </Link>
                 </li>
               );
             })}
 
             <li>
-              <Link to="/faq" className={`block px-3.5 py-2.5 text-[12px] font-semibold transition-colors ${location.pathname === '/faq' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>Domande Frequenti</Link>
+              <Link to="/faq" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/faq' ? '#ffffff' : '#d1d5db' }}>Domande Frequenti</Link>
             </li>
             <li>
-              <Link to="/contatti" className={`block px-3.5 py-2.5 text-[12px] font-semibold transition-colors ${location.pathname === '/contatti' ? 'text-white' : 'text-gray-300 hover:text-white'}`}>Contattaci</Link>
+              <Link to="/contatti" className="block px-3.5 py-2.5 text-xs font-semibold transition-colors" style={{ color: location.pathname === '/contatti' ? '#ffffff' : '#d1d5db' }}>Contattaci</Link>
             </li>
           </ul>
         </div>
       </nav>
 
-      {/* ── MEGA MENU ── */}
+      {/* ── MEGA MENU — sfondo SCURO solido, copre tutto sotto ── */}
       {activeCatalog && (
         <div
-          className="absolute left-0 right-0 z-40 bg-[#2d3a4a] shadow-2xl"
+          className="absolute left-0 right-0 shadow-2xl"
+          style={{ ...darkBg, zIndex: 9999, top: '100%' }}
           onMouseEnter={megaEnter}
           onMouseLeave={megaLeave}
         >
-          <div className="mx-auto max-w-[1100px] px-6 py-6">
+          <div className="mx-auto px-6 py-6" style={{ maxWidth: 1100 }}>
             <div className="flex flex-wrap gap-x-10 gap-y-5">
               {activeCatalog.groups.map((group) => (
-                <div key={group.slug} className="min-w-[150px]">
+                <div key={group.slug} style={{ minWidth: 150 }}>
                   <Link
                     to={`/categoria/${activeCatalog.slug}/${group.slug}`}
                     onClick={() => setActiveCatalogKey(null)}
-                    className="block text-[13px] font-bold text-white mb-2.5 hover:text-green-400 transition-colors"
+                    className="block text-sm font-bold mb-2.5 transition-colors"
+                    style={{ color: '#ffffff' }}
                   >
                     {group.title}
                   </Link>
@@ -250,7 +257,8 @@ export default function Header({
                         <Link
                           to={`/categoria/${activeCatalog.slug}/${group.slug}/${s.slug}`}
                           onClick={() => setActiveCatalogKey(null)}
-                          className="block text-[12px] text-gray-400 hover:text-white transition-colors"
+                          className="block text-xs transition-colors hover:text-white"
+                          style={{ color: '#9ca3af' }}
                         >
                           {s.title}
                         </Link>
