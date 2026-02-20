@@ -13,20 +13,111 @@
  *
  * Rotta: /contatti
  */
-import { Link } from 'react-router-dom';
-import { ChevronRight, Phone, Mail, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Phone, Mail, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { trackUxEvent } from '../lib/uxTelemetry';
+
+type ContactField = 'fullName' | 'email' | 'subject' | 'message';
+type ContactErrors = Partial<Record<ContactField, string>>;
+
+const SUBJECT_VALUES = ['preventivo', 'info-prodotto', 'assistenza', 'ricambi', 'spedizione', 'altro'] as const;
+const SUBJECT_SET = new Set<string>(SUBJECT_VALUES);
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeSubject(value: string) {
+  return SUBJECT_SET.has(value) ? value : '';
+}
 
 export default function ContactPage() {
-  return (
-    <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-700">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">Contatti</span>
-      </nav>
+  const [searchParams] = useSearchParams();
+  const requestedSubject = searchParams.get('oggetto')?.trim() || '';
+  const requestedCategory = searchParams.get('categoria')?.trim() || '';
+  const requestedMessage = searchParams.get('messaggio')?.trim() || '';
+  const normalizedRequestedSubject = useMemo(() => normalizeSubject(requestedSubject), [requestedSubject]);
+  const initialMessage = useMemo(() => {
+    if (requestedMessage) return requestedMessage;
+    if (!requestedCategory) return '';
+    return `Buongiorno, desidero un preventivo per la categoria "${requestedCategory}".`;
+  }, [requestedCategory, requestedMessage]);
 
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-3">Contattaci</h1>
-      <p className="text-lg text-gray-600 mb-8">
+  const [fullName, setFullName] = useState('');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [subject, setSubject] = useState(normalizedRequestedSubject);
+  const [message, setMessage] = useState(initialMessage);
+  const [errors, setErrors] = useState<ContactErrors>({});
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setSubject(normalizedRequestedSubject);
+    setMessage(initialMessage);
+    setErrors({});
+    setSubmitSuccess(false);
+  }, [initialMessage, normalizedRequestedSubject]);
+
+  useEffect(() => {
+    if (!requestedCategory && !requestedSubject && !requestedMessage) return;
+    trackUxEvent('contact_prefill_view', {
+      category: requestedCategory || undefined,
+      subject: requestedSubject || undefined,
+      hasCustomMessage: Boolean(requestedMessage),
+    });
+  }, [requestedCategory, requestedMessage, requestedSubject]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitSuccess(false);
+
+    const nextErrors: ContactErrors = {};
+    if (fullName.trim().length < 2) {
+      nextErrors.fullName = 'Inserisci nome e cognome (minimo 2 caratteri).';
+    }
+    if (!EMAIL_REGEX.test(email.trim())) {
+      nextErrors.email = 'Inserisci un indirizzo email valido.';
+    }
+    if (!subject) {
+      nextErrors.subject = "Seleziona l'oggetto della richiesta.";
+    }
+    if (message.trim().length < 10) {
+      nextErrors.message = 'Inserisci un messaggio di almeno 10 caratteri.';
+    }
+
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      trackUxEvent('contact_submit_error', {
+        errorFields: Object.keys(nextErrors),
+        categoryPrefill: requestedCategory || undefined,
+      });
+      requestAnimationFrame(() => errorSummaryRef.current?.focus());
+      return;
+    }
+
+    trackUxEvent('contact_submit_success', {
+      subject,
+      categoryPrefill: requestedCategory || undefined,
+      hasCompany: company.trim().length > 0,
+      hasPhone: phone.trim().length > 0,
+    });
+    setSubmitSuccess(true);
+  };
+
+  const clearFieldError = (field: ContactField) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  return (
+    <main className="app-page-shell py-8 mb-20">
+      <h1 className="app-page-title text-3xl font-extrabold text-gray-900 mb-3">Contattaci</h1>
+      <p className="app-page-subtitle text-lg text-gray-600 mb-8">
         Siamo a tua disposizione per consulenze, preventivi personalizzati e assistenza post-vendita.
       </p>
 
@@ -64,30 +155,127 @@ export default function ContactPage() {
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Inviaci un messaggio</h2>
-            <form className="space-y-4" onSubmit={e => e.preventDefault()}>
+            {requestedCategory && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                Richiesta preventivo precompilata per: <strong>{requestedCategory}</strong>
+              </div>
+            )}
+            {submitSuccess && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">
+                Richiesta acquisita correttamente. Ti ricontatteremo entro 24 ore lavorative.
+              </div>
+            )}
+            {Object.keys(errors).length > 0 && (
+              <div
+                ref={errorSummaryRef}
+                tabIndex={-1}
+                role="alert"
+                className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              >
+                Controlla i campi evidenziati e riprova.
+              </div>
+            )}
+            <form className="space-y-4" noValidate onSubmit={handleSubmit}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
-                  <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
+                  <label htmlFor="contact-full-name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nome e Cognome <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="contact-full-name"
+                    type="text"
+                    value={fullName}
+                    required
+                    aria-invalid={Boolean(errors.fullName)}
+                    aria-describedby={errors.fullName ? 'contact-full-name-error' : undefined}
+                    onChange={(event) => {
+                      setFullName(event.target.value);
+                      setSubmitSuccess(false);
+                      clearFieldError('fullName');
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                  />
+                  {errors.fullName && (
+                    <p id="contact-full-name-error" className="mt-1 text-sm text-red-700">
+                      {errors.fullName}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Azienda</label>
-                  <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
+                  <label htmlFor="contact-company" className="block text-sm font-medium text-gray-700 mb-1">Azienda</label>
+                  <input
+                    id="contact-company"
+                    type="text"
+                    value={company}
+                    onChange={(event) => {
+                      setCompany(event.target.value);
+                      setSubmitSuccess(false);
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                  />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input type="email" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
+                  <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="contact-email"
+                    type="email"
+                    value={email}
+                    required
+                    aria-invalid={Boolean(errors.email)}
+                    aria-describedby={errors.email ? 'contact-email-error' : 'contact-email-help'}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setSubmitSuccess(false);
+                      clearFieldError('email');
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                  />
+                  {!errors.email && (
+                    <p id="contact-email-help" className="mt-1 text-xs text-gray-500">
+                      Useremo questa email per inviarti la risposta.
+                    </p>
+                  )}
+                  {errors.email && (
+                    <p id="contact-email-error" className="mt-1 text-sm text-red-700">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                  <input type="tel" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
+                  <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                  <input
+                    id="contact-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(event) => {
+                      setPhone(event.target.value);
+                      setSubmitSuccess(false);
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                  />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Oggetto</label>
-                <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600">
+                <label htmlFor="contact-subject" className="block text-sm font-medium text-gray-700 mb-1">
+                  Oggetto <span aria-hidden="true">*</span>
+                </label>
+                <select
+                  id="contact-subject"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                  value={subject}
+                  required
+                  aria-invalid={Boolean(errors.subject)}
+                  aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
+                  onChange={(event) => {
+                    setSubject(event.target.value);
+                    setSubmitSuccess(false);
+                    clearFieldError('subject');
+                  }}
+                >
                   <option value="">Seleziona...</option>
                   <option value="preventivo">Richiesta preventivo</option>
                   <option value="info-prodotto">Informazioni prodotto</option>
@@ -96,12 +284,40 @@ export default function ContactPage() {
                   <option value="spedizione">Informazioni spedizione</option>
                   <option value="altro">Altro</option>
                 </select>
+                {errors.subject && (
+                  <p id="contact-subject-error" className="mt-1 text-sm text-red-700">
+                    {errors.subject}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Messaggio</label>
-                <textarea rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600" />
+                <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-1">
+                  Messaggio <span aria-hidden="true">*</span>
+                </label>
+                <textarea
+                  id="contact-message"
+                  rows={4}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                  value={message}
+                  required
+                  aria-invalid={Boolean(errors.message)}
+                  aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                  onChange={(event) => {
+                    setMessage(event.target.value);
+                    setSubmitSuccess(false);
+                    clearFieldError('message');
+                  }}
+                />
+                {errors.message && (
+                  <p id="contact-message-error" className="mt-1 text-sm text-red-700">
+                    {errors.message}
+                  </p>
+                )}
               </div>
-              <button type="submit" className="w-full py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-700 transition-colors">
+              <button
+                type="submit"
+                className="app-action-primary w-full py-3 bg-green-700 text-white font-bold rounded-xl border border-green-900 shadow-sm hover:bg-green-800 transition-colors"
+              >
                 Invia messaggio
               </button>
             </form>

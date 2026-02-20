@@ -13,7 +13,7 @@
  *   UIProvider     → stato visuale globale (drawer aperti, modale login, ecc.)
  *
  * Mappa delle rotte:
- *   /                                → HomePage (pagina principale)
+ *   /                                → HomePage (homepage principale)
  *   /categoria/:slug                 → CategoryPage (lista prodotti per categoria)
  *   /categoria/:slug/:sottocategoria → CategoryPage (sotto-categoria)
  *   /categoria/:slug/:sotto/:foglia  → CategoryPage (categoria foglia, 3° livello)
@@ -32,8 +32,9 @@
  *   /condizioni-vendita              → TermsPage
  *   * (qualsiasi altro percorso)     → NotFoundPage (errore 404)
  *
- * Tutte le rotte sono figli di <Layout />, che fornisce Header, Footer,
+ * Le rotte interne sono figlie di <Layout />, che fornisce Header, Footer,
  * drawer carrello/preferiti e modale autenticazione.
+ * La homepage (/) usa HomePage dedicata.
  *
  * @see Layout.tsx — layout condiviso con Outlet
  * @see main.tsx  — punto di ingresso dove viene montato <BrowserRouter>
@@ -45,7 +46,6 @@ import { CartProvider } from './contexts/CartContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
 import { UIProvider } from './contexts/UIContext';
 import Layout from './components/Layout';
-import HomePage from './components/HomePage';
 import CategoryPage from './components/CategoryPage';
 import ProductPage from './pages/ProductPage';
 import BusinessTypePage from './pages/BusinessTypePage';
@@ -62,6 +62,8 @@ import FaqPage from './pages/FaqPage';
 import GlossaryPage from './pages/GlossaryPage';
 import TermsPage from './pages/TermsPage';
 import NotFoundPage from './pages/NotFoundPage';
+import HomePage from './components/home_v2/HomeV2Page';
+import SupportHelpWidget from './components/SupportHelpWidget';
 
 /**
  * Componente principale dell'app.
@@ -78,12 +80,11 @@ export default function App() {
           <UIProvider>
             {/* ── Definizione rotte ────────────────────────────── */}
             <Routes>
+              {/* ── Homepage principale ── */}
+              <Route path="/" element={<HomePage />} />
+
               {/* Layout condiviso: Header + Footer + Drawer + Modale Auth */}
               <Route element={<Layout />}>
-
-                {/* ── Pagina principale ── */}
-                <Route index element={<HomePage />} />
-
                 {/* ── Catalogo: navigazione per categoria fino a 3 livelli ── */}
                 <Route path="categoria/:slug" element={<CategoryPage />} />
                 <Route path="categoria/:slug/:sottocategoria" element={<CategoryPage />} />
@@ -125,6 +126,7 @@ export default function App() {
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
+            <SupportHelpWidget />
           </UIProvider>
         </FavoritesProvider>
       </CartProvider>

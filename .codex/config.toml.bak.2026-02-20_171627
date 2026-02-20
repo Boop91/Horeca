@@ -1,0 +1,14 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model = "gpt-5.3-codex"
+
+# Multi-agente (4 thread)
+features.multi_agent = true
+agents.max_threads = 4
+
+# Spegnere MCP che ora dà errori (Linear/Notion). Riattivare solo quando serve.
+[mcp_servers.linear]
+enabled = false
+
+[mcp_servers.notion]
+enabled = false

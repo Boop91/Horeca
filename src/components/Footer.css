@@ -1,0 +1,300 @@
+.horeca-footer {
+  margin-top: 64px;
+  color: #d1d5db;
+  background: linear-gradient(90deg, #0e1320 0%, #0e1320 100%);
+}
+
+.horeca-footer-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+.horeca-footer-newsletter {
+  background: #2c3542;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.horeca-footer-newsletter-row {
+  min-height: 160px;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.horeca-footer-newsletter-copy {
+  max-width: 460px;
+}
+
+.horeca-footer-newsletter-title {
+  margin: 0 0 8px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 40px;
+  line-height: 46px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.horeca-footer-newsletter-subtitle {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.horeca-footer-newsletter-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 9999px;
+  background: #2db458;
+  color: #ffffff;
+  padding: 12px 30px;
+  text-decoration: none;
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  border: 1px solid #27a24e;
+  box-shadow: none;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.horeca-footer-newsletter-cta:hover {
+  background: #27a24e;
+}
+
+.horeca-footer-newsletter-cta:active {
+  transform: translateY(1px);
+}
+
+.horeca-footer-social-wrap {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.horeca-footer-social-label {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.horeca-footer-social-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.horeca-footer-social-link {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #1b5e38;
+  background: #bcf0d3;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.horeca-footer-social-link:hover {
+  transform: translateY(-2px);
+  background: #9fe7be;
+}
+
+.horeca-footer-main {
+  padding: 64px 0 80px;
+  background: #111827;
+}
+
+.horeca-footer-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+.horeca-footer-links-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 48px;
+}
+
+.horeca-footer-link-column {
+  min-width: 0;
+}
+
+.horeca-footer-link-title {
+  margin: 0 0 24px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.horeca-footer-link-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.horeca-footer-link-list a {
+  color: #d1d5db;
+  text-decoration: none;
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+  transition: color 160ms ease;
+}
+
+.horeca-footer-link-list a:hover {
+  color: #ffffff;
+}
+
+.horeca-footer-contact-legal,
+.horeca-footer-contact-line,
+.horeca-footer-contact-mail,
+.horeca-footer-vat {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+}
+
+.horeca-footer-contact-legal {
+  color: #79e8aa;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.horeca-footer-contact-line {
+  color: #d1d5db;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+.horeca-footer-contact-line a,
+.horeca-footer-contact-mail a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.horeca-footer-contact-line a:hover,
+.horeca-footer-contact-mail a:hover {
+  color: #79e8aa;
+}
+
+.horeca-footer-contact-mail {
+  margin-top: 6px;
+  color: #79e8aa;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.horeca-footer-vat {
+  margin-top: 16px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 1280px) {
+  .horeca-footer-newsletter-title {
+    font-size: 34px;
+    line-height: 40px;
+  }
+
+  .horeca-footer-social-label {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .horeca-footer-link-title {
+    font-size: 22px;
+    line-height: 30px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .horeca-footer-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .horeca-footer-newsletter-row {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
+  .horeca-footer-social-wrap {
+    margin-left: 0;
+  }
+
+  .horeca-footer-links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px;
+  }
+}
+
+@media (max-width: 640px) {
+  .horeca-footer-newsletter-row {
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+
+  .horeca-footer-newsletter-title {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  .horeca-footer-newsletter-subtitle {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .horeca-footer-social-wrap {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .horeca-footer-main {
+    padding: 44px 0 48px;
+  }
+
+  .horeca-footer-main-column {
+    gap: 44px;
+  }
+
+  .horeca-footer-links-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .horeca-footer-link-title {
+    margin-bottom: 16px;
+  }
+
+  .horeca-footer-link-list {
+    gap: 8px;
+  }
+}

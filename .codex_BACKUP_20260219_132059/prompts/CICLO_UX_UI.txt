@@ -1,0 +1,13 @@
+OBIETTIVO: riallineare UX e grafica del sito in modo rigoroso.
+
+Metodo obbligatorio (ciclo scientifico):
+1) OSSERVARE: leggere AGENTS.md e _SQUADRA_DIARIO.md. Eseguire scripts/audit-ui.sh sull'URL locale e usare report.json + home.png come evidenze.
+2) IPOTIZZARE: chiedere ai tre specialisti (esperienza_uso, interfaccia_visiva, collaudo) un rapporto breve ma confutabile: problemi, priorita', criteri di accettazione, rischi.
+3) INTERVENIRE: proporre piano minimo (pochi file) e applicare modifiche.
+4) VERIFICARE: eseguire scripts/verifica.sh + (se utile) un secondo scripts/audit-ui.sh per confrontare.
+5) CONCLUDERE: aggiornare _SQUADRA_DIARIO.md con: ipotesi, file toccati, comandi, esito, cosa resta.
+
+Regole:
+- NON lavorare in parallelo: prima rapporti, poi intervento, poi verifica.
+- Niente modifiche “a sensazione”: ogni modifica deve avere ipotesi + verifica.
+- Se un test fallisce o il report peggiora: confutare e tornare al punto 1.

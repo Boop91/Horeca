@@ -1,0 +1,26 @@
+# Se non vuoi fissare il modello, puoi anche togliere questa riga.
+# Nome modello documentato: gpt-5-codex. :contentReference[oaicite:3]{index=3}
+model = "gpt-5-codex"
+
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+agents.max_threads = 4
+
+[features]
+multi_agent = true
+
+[agents.coordinatore]
+description = "Coordinatore: decide, assegna, integra, verifica, chiude il ciclo."
+config_file = "agents/coordinatore.toml"
+
+[agents.ux]
+description = "Esperienza d’uso: flussi, gerarchie, prevenzione errori, coerenza."
+config_file = "agents/ux.toml"
+
+[agents.ui]
+description = "Interfaccia visiva: griglia, spaziature, tipografia, stati, contrasto."
+config_file = "agents/ui.toml"
+
+[agents.collaudo]
+description = "Collaudo: test, regressioni, prove ripetibili, checklist."
+config_file = "agents/collaudo.toml"

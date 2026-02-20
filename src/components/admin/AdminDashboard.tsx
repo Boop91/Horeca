@@ -1,183 +1,216 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  Shield, LayoutDashboard, Package, ShoppingCart, Users, FileText,
-  Star, Settings, Search, Plus, Eye, Pencil, Trash2, Check, X,
-  ChevronRight, TrendingUp, UserPlus, BarChart3, Wrench, Lock,
-  CreditCard, Save, CheckCircle, AlertTriangle, Clock, Euro,
-  Truck, FileBarChart, Tag, Mail, Phone, MapPin, Calendar,
-  ArrowUpRight, ArrowDownRight, RefreshCw, Download, Filter,
-  MessageSquare, Bell, Globe, Percent, CircleDollarSign,
-  ClipboardList, BadgeCheck, PackageSearch, Receipt,
+  Shield,
+  LayoutDashboard,
+  Package,
+  FileText,
+  Image,
+  ShoppingCart,
+  Users,
+  CreditCard,
+  ClipboardCheck,
+  Save,
+  Plus,
+  Trash2,
+  Search,
+  Filter,
+  Check,
+  ArrowUpRight,
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getStripePublishableKey, persistStripePublishableKey, isStripeConfigured } from '../../config/stripe';
-
-/* ═══════════════════════════════════════════════════════════════
- * TIPI
- * ═══════════════════════════════════════════════════════════════ */
+import { useAuth } from '../../contexts/AuthContext';
+import { catalogMenu } from '../../data/catalogMenu';
+import type { Product } from '../../data/products/sampleProducts';
+import {
+  useStoreProducts,
+  updateStoreProduct,
+  useStoreBlogArticles,
+  upsertStoreBlogArticle,
+  deleteStoreBlogArticle,
+  useHomeContentConfig,
+  saveHomeContentConfig,
+  useOrderRecords,
+  updateOrderStatus,
+  type BlogArticle,
+  type HomeContentConfig,
+  type OrderStatus,
+} from '../../lib/storefrontStore';
+import { getStripePublishableKey, isStripeConfigured } from '../../config/stripe';
+import { toast } from 'sonner';
 
 type AdminTab =
-  | 'dashboard'
-  | 'ordini'
-  | 'catalogo'
-  | 'clienti'
-  | 'preventivi'
-  | 'finanza'
-  | 'marketing'
-  | 'spedizioni'
-  | 'contenuti'
-  | 'impostazioni';
+  | 'overview'
+  | 'products'
+  | 'categories'
+  | 'blog'
+  | 'home'
+  | 'orders'
+  | 'customers'
+  | 'payments'
+  | 'audit';
 
-interface OrderStatus {
-  key: string;
-  label: string;
-  color: string;
-  bg: string;
+interface AuditItem {
+  id: string;
+  at: string;
+  actor: string;
+  action: string;
+  target: string;
+  details: string;
 }
 
-const ORDER_STATUSES: Record<string, OrderStatus> = {
-  nuovo: { key: 'nuovo', label: 'Nuovo', color: 'text-blue-800', bg: 'bg-blue-100' },
-  confermato: { key: 'confermato', label: 'Confermato', color: 'text-green-800', bg: 'bg-green-100' },
-  in_lavorazione: { key: 'in_lavorazione', label: 'In lavorazione', color: 'text-amber-800', bg: 'bg-amber-100' },
-  spedito: { key: 'spedito', label: 'Spedito', color: 'text-purple-800', bg: 'bg-purple-100' },
-  consegnato: { key: 'consegnato', label: 'Consegnato', color: 'text-green-800', bg: 'bg-green-100' },
-  annullato: { key: 'annullato', label: 'Annullato', color: 'text-red-800', bg: 'bg-red-100' },
-};
+const AUDIT_STORAGE_KEY = 'bianchipro.admin.audit.v1';
 
-/* ═══════════════════════════════════════════════════════════════
- * DATI MOCK REALISTICI — SETTORE HORECA
- * ═══════════════════════════════════════════════════════════════ */
-
-const MOCK_ORDERS = [
-  { id: 'ORD-2026-0201', data: '16/02/2026', cliente: 'Ristorante Da Mario', email: 'mario@ristdamario.it', piva: 'IT01234567890', totale: 6140.00, stato: 'nuovo', prodotti: 3, metodo: 'Bonifico 30gg', zona: 'Lombardia' },
-  { id: 'ORD-2026-0200', data: '15/02/2026', cliente: 'Hotel Belvedere', email: 'acquisti@belvedere.com', piva: 'IT09876543210', totale: 12480.00, stato: 'confermato', prodotti: 7, metodo: 'Carta credito', zona: 'Toscana' },
-  { id: 'ORD-2026-0199', data: '15/02/2026', cliente: 'Pizzeria Napoli', email: 'info@pizzerianapoli.it', piva: 'IT11223344556', totale: 3250.00, stato: 'spedito', prodotti: 1, metodo: 'Bonifico anticipato', zona: 'Campania' },
-  { id: 'ORD-2026-0198', data: '14/02/2026', cliente: 'Catering Rossi S.r.l.', email: 'ordini@cateringrossi.it', piva: 'IT66778899001', totale: 8920.00, stato: 'consegnato', prodotti: 5, metodo: 'Bonifico 60gg', zona: 'Emilia-Romagna' },
-  { id: 'ORD-2026-0197', data: '14/02/2026', cliente: 'Bar Centrale', email: 'barcentrale@pec.it', piva: 'IT33445566778', totale: 1540.00, stato: 'annullato', prodotti: 2, metodo: 'Carta credito', zona: 'Veneto' },
-  { id: 'ORD-2026-0196', data: '13/02/2026', cliente: 'Trattoria Il Borgo', email: 'info@ilborgo.it', piva: 'IT55667788990', totale: 4380.00, stato: 'in_lavorazione', prodotti: 3, metodo: 'Bonifico 30gg', zona: 'Piemonte' },
-  { id: 'ORD-2026-0195', data: '13/02/2026', cliente: 'Mensa Aziendale Alfa', email: 'logistica@alfa.com', piva: 'IT99001122334', totale: 15200.00, stato: 'consegnato', prodotti: 12, metodo: 'Bonifico 90gg', zona: 'Lombardia' },
-  { id: 'ORD-2026-0194', data: '12/02/2026', cliente: 'Pasticceria Dolce Vita', email: 'acquisti@dolcevita.it', piva: 'IT44556677889', totale: 5670.00, stato: 'confermato', prodotti: 4, metodo: 'Carta credito', zona: 'Lazio' },
-];
-
-const MOCK_CLIENTS = [
-  { id: 'CLI-001', nome: 'Ristorante Da Mario', referente: 'Mario Bianchi', email: 'mario@ristdamario.it', piva: 'IT01234567890', telefono: '+39 02 1234567', citta: 'Milano', tipo: 'Ristorante', ordini: 15, fatturato: 45230, ultimoOrdine: '16/02/2026', stato: 'attivo', credito: 10000, creditoUsato: 6140 },
-  { id: 'CLI-002', nome: 'Hotel Belvedere', referente: 'Giulia Verdi', email: 'acquisti@belvedere.com', piva: 'IT09876543210', telefono: '+39 055 9876543', citta: 'Firenze', tipo: 'Hotel', ordini: 32, fatturato: 128400, ultimoOrdine: '15/02/2026', stato: 'attivo', credito: 30000, creditoUsato: 12480 },
-  { id: 'CLI-003', nome: 'Pizzeria Napoli', referente: 'Luca Ferrari', email: 'info@pizzerianapoli.it', piva: 'IT11223344556', telefono: '+39 081 1122334', citta: 'Napoli', tipo: 'Pizzeria', ordini: 8, fatturato: 18750, ultimoOrdine: '15/02/2026', stato: 'attivo', credito: 5000, creditoUsato: 3250 },
-  { id: 'CLI-004', nome: 'Catering Rossi S.r.l.', referente: 'Anna Colombo', email: 'ordini@cateringrossi.it', piva: 'IT66778899001', telefono: '+39 051 6677889', citta: 'Bologna', tipo: 'Catering', ordini: 22, fatturato: 89600, ultimoOrdine: '14/02/2026', stato: 'attivo', credito: 20000, creditoUsato: 8920 },
-  { id: 'CLI-005', nome: 'Bar Centrale', referente: 'Roberto Esposito', email: 'barcentrale@pec.it', piva: 'IT33445566778', telefono: '+39 041 3344556', citta: 'Venezia', tipo: 'Bar/Caffe', ordini: 4, fatturato: 6200, ultimoOrdine: '14/02/2026', stato: 'inattivo', credito: 3000, creditoUsato: 0 },
-  { id: 'CLI-006', nome: 'Mensa Aziendale Alfa', referente: 'Paolo Ricci', email: 'logistica@alfa.com', piva: 'IT99001122334', telefono: '+39 02 9900112', citta: 'Milano', tipo: 'Mensa aziendale', ordini: 18, fatturato: 152000, ultimoOrdine: '13/02/2026', stato: 'attivo', credito: 50000, creditoUsato: 15200 },
-];
-
-const MOCK_QUOTES = [
-  { id: 'PRV-001', data: '16/02/2026', cliente: 'Hotel Belvedere', totale: 24500, prodotti: 8, stato: 'in_attesa', scadenza: '02/03/2026' },
-  { id: 'PRV-002', data: '14/02/2026', cliente: 'Mensa Aziendale Alfa', totale: 18900, prodotti: 15, stato: 'approvato', scadenza: '28/02/2026' },
-  { id: 'PRV-003', data: '12/02/2026', cliente: 'Pasticceria Dolce Vita', totale: 7800, prodotti: 3, stato: 'scaduto', scadenza: '12/02/2026' },
-  { id: 'PRV-004', data: '10/02/2026', cliente: 'Ristorante Da Mario', totale: 3200, prodotti: 2, stato: 'convertito', scadenza: '24/02/2026' },
-];
-
-const MOCK_INVOICES = [
-  { id: 'FT-2026-0045', data: '16/02/2026', cliente: 'Catering Rossi S.r.l.', totale: 8920, iva: 1962.40, stato: 'pagata', scadenza: '16/04/2026', metodo: 'Bonifico 60gg' },
-  { id: 'FT-2026-0044', data: '15/02/2026', cliente: 'Hotel Belvedere', totale: 12480, iva: 2745.60, stato: 'emessa', scadenza: '17/03/2026', metodo: 'Carta credito' },
-  { id: 'FT-2026-0043', data: '13/02/2026', cliente: 'Mensa Aziendale Alfa', totale: 15200, iva: 3344.00, stato: 'scaduta', scadenza: '13/02/2026', metodo: 'Bonifico 90gg' },
-  { id: 'FT-2026-0042', data: '10/02/2026', cliente: 'Ristorante Da Mario', totale: 6140, iva: 1350.80, stato: 'pagata', scadenza: '12/03/2026', metodo: 'Bonifico 30gg' },
-];
-
-const MOCK_STOCK_ALERTS = [
-  { sku: 'AB5514', nome: 'Abbattitore Forcar AB5514', giacenza: 1, minimo: 3 },
-  { sku: 'FP-ELEC', nome: 'Forno Pizzeria Fimar FP', giacenza: 0, minimo: 2 },
-  { sku: 'FY8L', nome: 'Friggitrice Fimar FY8L', giacenza: 2, minimo: 5 },
-];
-
-const MOCK_PROMOS = [
-  { id: 'PRM-001', nome: 'Sconto Linea Freddo -15%', tipo: 'Percentuale', valore: '15%', attiva: true, scadenza: '28/02/2026', utilizzi: 12 },
-  { id: 'PRM-002', nome: 'Spedizione gratis > 2000', tipo: 'Spedizione', valore: 'Free shipping', attiva: true, scadenza: '31/03/2026', utilizzi: 34 },
-  { id: 'PRM-003', nome: 'BENVENUTO10 - Primo ordine', tipo: 'Coupon', valore: '10%', attiva: true, scadenza: '31/12/2026', utilizzi: 8 },
-  { id: 'PRM-004', nome: 'Bundle Pizzeria completo', tipo: 'Bundle', valore: '-350 EUR', attiva: false, scadenza: '01/02/2026', utilizzi: 5 },
-];
-
-const MOCK_SHIPMENTS = [
-  { id: 'SPD-001', ordine: 'ORD-2026-0199', corriere: 'BRT', tracking: 'BRT-2026-123456', stato: 'in_transito', partenza: '15/02/2026', consegna: '18/02/2026', destinazione: 'Napoli' },
-  { id: 'SPD-002', ordine: 'ORD-2026-0198', corriere: 'GLS', tracking: 'GLS-2026-789012', stato: 'consegnato', partenza: '13/02/2026', consegna: '14/02/2026', destinazione: 'Bologna' },
-  { id: 'SPD-003', ordine: 'ORD-2026-0195', corriere: 'DHL Freight', tracking: 'DHL-2026-345678', stato: 'consegnato', partenza: '12/02/2026', consegna: '13/02/2026', destinazione: 'Milano' },
-];
-
-/* ═══════════════════════════════════════════════════════════════
- * SIDEBAR CONFIG
- * ═══════════════════════════════════════════════════════════════ */
-
-const SIDEBAR_ITEMS: { id: AdminTab; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'ordini', label: 'Ordini', icon: ShoppingCart, badge: MOCK_ORDERS.filter(o => o.stato === 'nuovo').length },
-  { id: 'catalogo', label: 'Catalogo', icon: Package },
-  { id: 'clienti', label: 'Clienti / CRM', icon: Users },
-  { id: 'preventivi', label: 'Preventivi', icon: ClipboardList, badge: MOCK_QUOTES.filter(q => q.stato === 'in_attesa').length },
-  { id: 'finanza', label: 'Finanza', icon: CircleDollarSign },
-  { id: 'marketing', label: 'Marketing', icon: Tag },
-  { id: 'spedizioni', label: 'Spedizioni', icon: Truck },
-  { id: 'contenuti', label: 'Contenuti', icon: FileText },
-  { id: 'impostazioni', label: 'Impostazioni', icon: Settings },
-];
-
-/* ═══════════════════════════════════════════════════════════════
- * HELPERS
- * ═══════════════════════════════════════════════════════════════ */
-
-function KpiCard({ label, value, icon: Icon, trend, trendUp, color }: {
-  label: string; value: string; icon: typeof Euro; trend?: string; trendUp?: boolean; color: string;
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        {trend && (
-          <span className={`inline-flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-green-700' : 'text-red-500'}`}>
-            {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {trend}
-          </span>
-        )}
-      </div>
-      <p className="text-2xl font-extrabold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-    </div>
-  );
+function loadAudit(): AuditItem[] {
+  if (typeof window === 'undefined') return [];
+  const raw = window.localStorage.getItem(AUDIT_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as AuditItem[];
+  } catch {
+    return [];
+  }
 }
 
-function StatBadge({ text, variant }: { text: string; variant: 'green' | 'red' | 'amber' | 'blue' | 'gray' }) {
-  const colors = {
-    green: 'bg-green-100 text-green-800',
-    red: 'bg-red-100 text-red-800',
-    amber: 'bg-amber-100 text-amber-800',
-    blue: 'bg-blue-100 text-blue-800',
-    gray: 'bg-gray-100 text-gray-600',
-  };
-  return <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${colors[variant]}`}>{text}</span>;
+function saveAudit(logs: AuditItem[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(logs));
 }
 
-/* ═══════════════════════════════════════════════════════════════
- * COMPONENTE PRINCIPALE
- * ═══════════════════════════════════════════════════════════════ */
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('it-IT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+const availabilityOptions: Array<Product['availability']> = [
+  'disponibile',
+  'in_arrivo',
+  'su_ordinazione',
+  'esaurito',
+];
+
+const orderStatusOptions: OrderStatus[] = [
+  'pending_payment',
+  'pending_bank_transfer',
+  'processing',
+  'paid',
+  'cancelled',
+];
+
+const tabItems: Array<{ id: AdminTab; label: string; icon: typeof LayoutDashboard }> = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'products', label: 'Prodotti', icon: Package },
+  { id: 'categories', label: 'Categorie', icon: Filter },
+  { id: 'blog', label: 'Blog', icon: FileText },
+  { id: 'home', label: 'Home', icon: Image },
+  { id: 'orders', label: 'Ordini', icon: ShoppingCart },
+  { id: 'customers', label: 'Clienti', icon: Users },
+  { id: 'payments', label: 'Pagamenti', icon: CreditCard },
+  { id: 'audit', label: 'Audit', icon: ClipboardCheck },
+];
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [clientSearch, setClientSearch] = useState('');
-  const [orderFilter, setOrderFilter] = useState('');
-  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
-  /* Stripe settings */
-  const [stripeKey, setStripeKey] = useState(() => {
-    const current = getStripePublishableKey();
-    return current.includes('INSERISCI') ? '' : current;
+  const products = useStoreProducts();
+  const blogArticles = useStoreBlogArticles(true);
+  const homeContent = useHomeContentConfig();
+  const orders = useOrderRecords();
+
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [productSearch, setProductSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [bulkDiscountPercent, setBulkDiscountPercent] = useState('');
+  const [productDrafts, setProductDrafts] = useState<Record<string, Partial<Product>>>({});
+
+  const [articleForm, setArticleForm] = useState<BlogArticle>({
+    id: '',
+    title: '',
+    slug: '',
+    category: "Guida all'acquisto",
+    excerpt: '',
+    content: '',
+    author: user?.name || 'Redazione BianchiPro',
+    image: '',
+    readTime: 5,
+    publishedAt: new Date().toISOString(),
+    status: 'draft',
+    scheduledAt: '',
+    relatedCategories: [],
   });
-  const [stripeSaved, setStripeSaved] = useState(false);
 
-  /* Gmail settings */
-  const [gmailUser, setGmailUser] = useState('');
-  const [gmailSaved, setGmailSaved] = useState(false);
+  const [homeForm, setHomeForm] = useState<HomeContentConfig>(homeContent);
+  const [auditItems, setAuditItems] = useState<AuditItem[]>(() => loadAudit());
+
+  const appendAudit = (action: string, target: string, details: string) => {
+    const next: AuditItem = {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
+      at: new Date().toISOString(),
+      actor: user?.email || 'admin',
+      action,
+      target,
+      details,
+    };
+
+    setAuditItems((prev) => {
+      const logs = [next, ...prev].slice(0, 250);
+      saveAudit(logs);
+      return logs;
+    });
+  };
+
+  const getDraft = (product: Product): Product => ({
+    ...product,
+    ...productDrafts[product.slug],
+  });
+
+  const filteredProducts = useMemo(() => {
+    const text = productSearch.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesSearch =
+        text.length === 0 ||
+        product.name.toLowerCase().includes(text) ||
+        product.sku.toLowerCase().includes(text) ||
+        product.slug.toLowerCase().includes(text);
+
+      const matchesCategory = !categoryFilter || product.categorySlug === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, productSearch, categoryFilter]);
+
+  const customers = useMemo(() => {
+    const map = new Map<string, { email: string; name: string; orders: number; total: number }>();
+
+    for (const order of orders) {
+      const key = order.customer.email.toLowerCase();
+      const existing = map.get(key);
+      if (existing) {
+        existing.orders += 1;
+        existing.total += order.total;
+      } else {
+        map.set(key, {
+          email: order.customer.email,
+          name: order.customer.name,
+          orders: 1,
+          total: order.total,
+        });
+      }
+    }
+
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [orders]);
 
   if (!user || user.role !== 'admin') {
     return (
@@ -185,447 +218,502 @@ export default function AdminDashboard() {
         <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Accesso negato</h2>
         <p className="text-gray-600 mb-6">Solo gli amministratori possono accedere a questa sezione.</p>
-        <button onClick={() => navigate('/')} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+        <button
+          onClick={() => navigate('/')}
+          className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+        >
           Torna alla home
         </button>
       </div>
     );
   }
 
-  const filteredOrders = MOCK_ORDERS.filter(o =>
-    !orderFilter || o.stato === orderFilter
-  );
+  const metrics = {
+    products: products.length,
+    publishedArticles: blogArticles.filter((article) => article.status === 'published').length,
+    orders: orders.length,
+    revenue: orders.reduce((acc, order) => acc + order.total, 0),
+    pendingPayments: orders.filter((order) => order.status === 'pending_payment' || order.status === 'pending_bank_transfer').length,
+    processing: orders.filter((order) => order.status === 'processing').length,
+    customers: customers.length,
+  };
 
-  const filteredClients = MOCK_CLIENTS.filter(c =>
-    !clientSearch ||
-    c.nome.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    c.email.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    c.piva.includes(clientSearch)
-  );
+  const handleSaveProduct = (product: Product) => {
+    const draft = getDraft(product);
 
-  /* Calcoli KPI */
-  const fatturatoMese = MOCK_ORDERS.reduce((s, o) => s + o.totale, 0);
-  const ordiniNuovi = MOCK_ORDERS.filter(o => o.stato === 'nuovo').length;
-  const aov = fatturatoMese / MOCK_ORDERS.length;
-  const creditiInSospeso = MOCK_INVOICES.filter(f => f.stato !== 'pagata').reduce((s, f) => s + f.totale, 0);
+    updateStoreProduct(product.slug, {
+      name: draft.name,
+      images: draft.images,
+      availability: draft.availability,
+      priceNet: Number(draft.priceNet || 0),
+      originalPriceNet: draft.originalPriceNet ? Number(draft.originalPriceNet) : undefined,
+      shortDescription: draft.shortDescription,
+    });
+
+    setProductDrafts((prev) => {
+      const next = { ...prev };
+      delete next[product.slug];
+      return next;
+    });
+
+    appendAudit('update_product', product.slug, `Prezzo netto aggiornato a ${draft.priceNet}`);
+    toast.success(`Prodotto aggiornato: ${draft.name}`);
+  };
+
+  const handleBulkDiscount = () => {
+    const discount = Number.parseFloat(bulkDiscountPercent.replace(',', '.'));
+    if (!Number.isFinite(discount) || discount <= 0 || discount >= 90) {
+      toast.error('Inserisci una percentuale valida tra 0 e 90.');
+      return;
+    }
+
+    if (filteredProducts.length === 0) {
+      toast.error('Nessun prodotto nel filtro corrente.');
+      return;
+    }
+
+    if (!window.confirm(`Applicare sconto ${discount}% a ${filteredProducts.length} prodotti filtrati?`)) {
+      return;
+    }
+
+    filteredProducts.forEach((product) => {
+      const currentNet = product.priceNet;
+      const discounted = Math.max(0.01, Number((currentNet * (1 - discount / 100)).toFixed(2)));
+      updateStoreProduct(product.slug, {
+        originalPriceNet: currentNet,
+        priceNet: discounted,
+      });
+    });
+
+    appendAudit('bulk_discount', 'products', `Sconto ${discount}% su ${filteredProducts.length} prodotti`);
+    toast.success(`Sconto applicato a ${filteredProducts.length} prodotti`);
+  };
+
+  const handleLoadArticle = (article: BlogArticle) => {
+    setArticleForm({ ...article, scheduledAt: article.scheduledAt || '' });
+  };
+
+  const handleNewArticle = () => {
+    setArticleForm({
+      id: '',
+      title: '',
+      slug: '',
+      category: "Guida all'acquisto",
+      excerpt: '',
+      content: '',
+      author: user.name,
+      image: '',
+      readTime: 5,
+      publishedAt: new Date().toISOString(),
+      status: 'draft',
+      scheduledAt: '',
+      relatedCategories: [],
+    });
+  };
+
+  const handleSaveArticle = () => {
+    if (!articleForm.title.trim() || !articleForm.excerpt.trim() || !articleForm.content.trim()) {
+      toast.error('Titolo, estratto e contenuto sono obbligatori.');
+      return;
+    }
+
+    const slug = articleForm.slug.trim() || slugify(articleForm.title);
+    const id = articleForm.id || `blog-${Date.now()}`;
+
+    const nextArticle: BlogArticle = {
+      ...articleForm,
+      id,
+      slug,
+      publishedAt: articleForm.status === 'published'
+        ? new Date().toISOString()
+        : articleForm.publishedAt,
+      scheduledAt: articleForm.status === 'scheduled' ? articleForm.scheduledAt : '',
+    };
+
+    upsertStoreBlogArticle(nextArticle);
+    appendAudit('upsert_blog_article', nextArticle.slug, `Stato: ${nextArticle.status}`);
+    toast.success('Articolo blog salvato');
+    setArticleForm(nextArticle);
+  };
+
+  const handleDeleteArticle = (article: BlogArticle) => {
+    if (!window.confirm(`Eliminare definitivamente l'articolo "${article.title}"?`)) {
+      return;
+    }
+    deleteStoreBlogArticle(article.id);
+    appendAudit('delete_blog_article', article.slug, 'Articolo eliminato');
+    if (articleForm.id === article.id) handleNewArticle();
+    toast.success('Articolo eliminato');
+  };
+
+  const handleSaveHomeContent = () => {
+    saveHomeContentConfig(homeForm);
+    appendAudit('update_home_content', 'home', 'Testi promozionali e hero aggiornati');
+    toast.success('Contenuti Home aggiornati');
+  };
+
+  const orderStatusLabel = (status: OrderStatus) => {
+    switch (status) {
+      case 'pending_payment':
+        return 'In attesa pagamento';
+      case 'pending_bank_transfer':
+        return 'In attesa bonifico';
+      case 'processing':
+        return 'In lavorazione';
+      case 'paid':
+        return 'Pagato';
+      case 'cancelled':
+        return 'Annullato';
+      default:
+        return status;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ── Top header ── */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-4">
-        <div className="max-w-[1400px] mx-auto flex items-center gap-3">
+    <div className="min-h-screen bg-transparent">
+      <div className="bg-[#1f2937] text-white px-6 py-4">
+        <div className="max-w-[1520px] mx-auto flex items-center gap-3">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold">Pannello Amministratore</h1>
-            <p className="text-gray-400 text-xs">BianchiPro — Gestione completa e-commerce Horeca</p>
+            <h1 className="text-lg font-bold">Pannello Amministrazione</h1>
+            <p className="text-gray-300 text-xs">Controllo centralizzato catalogo, blog, ordini e contenuti storefront</p>
           </div>
-          <div className="ml-auto flex items-center gap-4">
-            <button className="relative p-2 rounded-lg hover:bg-white/10 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">3</span>
-            </button>
-            <div className="text-right">
-              <p className="text-sm font-semibold">{user.name}</p>
-              <p className="text-xs text-gray-400">{user.email}</p>
-            </div>
-          </div>
+          <span className="ml-auto text-xs text-gray-300">Admin: {user.email}</span>
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto flex">
-        {/* ── Sidebar ── */}
-        <aside className="w-56 shrink-0 bg-white border-r border-gray-200 min-h-[calc(100vh-72px)] py-4 px-3 hidden md:block">
-          <nav className="space-y-1">
-            {SIDEBAR_ITEMS.map(item => (
+      <div className="max-w-[1520px] mx-auto flex gap-6 px-4 py-6">
+        <aside className="w-64 shrink-0 hidden lg:block">
+          <div className="rounded-xl border border-gray-200 bg-white p-2 sticky top-6">
+            {tabItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
-                  activeTab === item.id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-colors ${
+                  activeTab === item.id
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <item.icon className="w-4 h-4 shrink-0" />
+                <item.icon className="w-4 h-4" />
                 {item.label}
-                {item.badge && item.badge > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
               </button>
             ))}
-          </nav>
+          </div>
         </aside>
 
-        {/* ── Mobile tabs ── */}
-        <div className="md:hidden w-full overflow-x-auto border-b border-gray-200 bg-white px-3 py-2 flex gap-2">
-          {SIDEBAR_ITEMS.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                activeTab === item.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              <item.icon className="w-3.5 h-3.5" />
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <div className="flex-1 min-w-0">
+          <div className="lg:hidden mb-4 overflow-x-auto flex gap-2" style={{ scrollbarWidth: 'none' }}>
+            {tabItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`shrink-0 px-3 py-2 rounded-lg text-xs font-semibold ${
+                  activeTab === item.id ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-700'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
-        {/* ══════════════════════════════════════════════════
-         * MAIN CONTENT
-         * ══════════════════════════════════════════════════ */}
-        <main className="flex-1 p-6 overflow-auto">
-
-          {/* ═══ DASHBOARD ═══ */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
-                <span className="text-xs text-gray-500">Aggiornamento: {new Date().toLocaleDateString('it-IT')}</span>
-              </div>
-
-              {/* KPI Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                <KpiCard label="Fatturato mese" value={`\u20AC${(fatturatoMese).toLocaleString('it-IT')}`} icon={Euro} trend="+12.3%" trendUp color="bg-green-50 text-green-700" />
-                <KpiCard label="Ordini totali" value={MOCK_ORDERS.length.toString()} icon={ShoppingCart} trend="+8%" trendUp color="bg-blue-50 text-blue-700" />
-                <KpiCard label="Valore medio ordine" value={`\u20AC${Math.round(aov).toLocaleString('it-IT')}`} icon={BarChart3} trend="+5.2%" trendUp color="bg-purple-50 text-purple-700" />
-                <KpiCard label="Ordini da evadere" value={ordiniNuovi.toString()} icon={Clock} color="bg-amber-50 text-amber-700" />
-                <KpiCard label="Crediti in sospeso" value={`\u20AC${creditiInSospeso.toLocaleString('it-IT')}`} icon={AlertTriangle} trend="2 scadute" color="bg-red-50 text-red-700" />
-              </div>
-
-              <div className="grid lg:grid-cols-3 gap-6">
-                {/* Ordini recenti */}
-                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm">
-                  <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900">Ordini recenti</h3>
-                    <button onClick={() => setActiveTab('ordini')} className="text-xs font-semibold text-green-700 hover:text-green-700 flex items-center gap-1">
-                      Vedi tutti <ChevronRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-100 text-left">
-                          <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">#</th>
-                          <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Cliente</th>
-                          <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Totale</th>
-                          <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {MOCK_ORDERS.slice(0, 5).map(o => {
-                          const status = ORDER_STATUSES[o.stato];
-                          return (
-                            <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50">
-                              <td className="px-5 py-3 font-mono text-xs font-semibold text-gray-700">{o.id}</td>
-                              <td className="px-5 py-3 font-medium text-gray-900">{o.cliente}</td>
-                              <td className="px-5 py-3 font-semibold text-gray-900">{'\u20AC'}{o.totale.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
-                              <td className="px-5 py-3"><span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${status.bg} ${status.color}`}>{status.label}</span></td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+          {activeTab === 'overview' && (
+            <section className="space-y-6">
+              <div className="rounded-xl border border-green-200 bg-gradient-to-r from-white via-green-50 to-emerald-50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-green-700">Priorita operative</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-700">
+                  <span className="inline-flex rounded-full bg-white px-3 py-1 font-semibold text-gray-800 ring-1 ring-gray-200">
+                    Pagamenti in attesa: {metrics.pendingPayments}
+                  </span>
+                  <span className="inline-flex rounded-full bg-white px-3 py-1 font-semibold text-gray-800 ring-1 ring-gray-200">
+                    Ordini in lavorazione: {metrics.processing}
+                  </span>
+                  <span className="inline-flex rounded-full bg-white px-3 py-1 font-semibold text-gray-800 ring-1 ring-gray-200">
+                    Clienti attivi: {metrics.customers}
+                  </span>
                 </div>
-
-                {/* Alerts sidebar */}
-                <div className="space-y-4">
-                  {/* Stock alerts */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                    <h4 className="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-500" /> Scorte basse
-                    </h4>
-                    <div className="space-y-2">
-                      {MOCK_STOCK_ALERTS.map(s => (
-                        <div key={s.sku} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-                          <div>
-                            <p className="text-xs font-semibold text-gray-900 truncate max-w-[160px]">{s.nome}</p>
-                            <p className="text-[10px] text-gray-500">SKU: {s.sku}</p>
-                          </div>
-                          <StatBadge text={s.giacenza === 0 ? 'Esaurito' : `${s.giacenza} pz`} variant={s.giacenza === 0 ? 'red' : 'amber'} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preventivi in attesa */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                    <h4 className="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4 text-blue-500" /> Preventivi in attesa
-                    </h4>
-                    {MOCK_QUOTES.filter(q => q.stato === 'in_attesa').map(q => (
-                      <div key={q.id} className="flex items-center justify-between py-1.5">
-                        <div>
-                          <p className="text-xs font-semibold text-gray-900">{q.cliente}</p>
-                          <p className="text-[10px] text-gray-500">{q.id} — Scade: {q.scadenza}</p>
-                        </div>
-                        <span className="text-xs font-bold text-gray-900">{'\u20AC'}{q.totale.toLocaleString('it-IT')}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Fatture scadute */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                    <h4 className="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
-                      <Receipt className="w-4 h-4 text-red-500" /> Fatture scadute
-                    </h4>
-                    {MOCK_INVOICES.filter(f => f.stato === 'scaduta').map(f => (
-                      <div key={f.id} className="flex items-center justify-between py-1.5">
-                        <div>
-                          <p className="text-xs font-semibold text-gray-900">{f.cliente}</p>
-                          <p className="text-[10px] text-gray-500">{f.id} — Scaduta: {f.scadenza}</p>
-                        </div>
-                        <span className="text-xs font-bold text-red-600">{'\u20AC'}{f.totale.toLocaleString('it-IT')}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ═══ ORDINI ═══ */}
-          {activeTab === 'ordini' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <h2 className="text-xl font-bold text-gray-900">Gestione Ordini</h2>
-                <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-                    <Plus className="w-4 h-4" /> Ordine manuale
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
-                    <Download className="w-4 h-4" /> Esporta CSV
-                  </button>
-                </div>
-              </div>
-
-              {/* Filter pills */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <button onClick={() => setOrderFilter('')} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${!orderFilter ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                  Tutti ({MOCK_ORDERS.length})
-                </button>
-                {Object.values(ORDER_STATUSES).map(s => {
-                  const count = MOCK_ORDERS.filter(o => o.stato === s.key).length;
-                  return (
-                    <button key={s.key} onClick={() => setOrderFilter(s.key)} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${orderFilter === s.key ? 'bg-gray-900 text-white' : `${s.bg} ${s.color} hover:opacity-80`}`}>
-                      {s.label} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left bg-gray-50">
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Ordine</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Data</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Cliente</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Prodotti</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Totale</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Pagamento</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Azioni</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredOrders.map(o => {
-                        const status = ORDER_STATUSES[o.stato];
-                        return (
-                          <tr key={o.id} className="border-b border-gray-50 hover:bg-gray-50">
-                            <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-700">{o.id}</td>
-                            <td className="px-4 py-3 text-gray-600 text-xs">{o.data}</td>
-                            <td className="px-4 py-3">
-                              <p className="font-medium text-gray-900 text-xs">{o.cliente}</p>
-                              <p className="text-[10px] text-gray-500">{o.zona}</p>
-                            </td>
-                            <td className="px-4 py-3 text-center text-gray-700">{o.prodotti}</td>
-                            <td className="px-4 py-3 font-bold text-gray-900">{'\u20AC'}{o.totale.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
-                            <td className="px-4 py-3 text-xs text-gray-600">{o.metodo}</td>
-                            <td className="px-4 py-3"><span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${status.bg} ${status.color}`}>{status.label}</span></td>
-                            <td className="px-4 py-3">
-                              <button className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Dettagli">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ═══ CATALOGO ═══ */}
-          {activeTab === 'catalogo' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Catalogo Prodotti</h2>
-                <div className="flex gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-                    <Plus className="w-4 h-4" /> Nuovo prodotto
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50">
-                    <Download className="w-4 h-4" /> Importa CSV
-                  </button>
-                </div>
-              </div>
-
-              {/* Alerts stock */}
-              {MOCK_STOCK_ALERTS.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-amber-900">{MOCK_STOCK_ALERTS.length} prodotti sotto la soglia minima</p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      {MOCK_STOCK_ALERTS.map(s => s.nome).join(', ')}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
-                <PackageSearch className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-bold text-gray-900 mb-1">Gestione catalogo avanzata</h3>
-                <p className="text-sm text-gray-500 max-w-md mx-auto">
-                  Attributi tecnici (voltaggio, certificazioni CE, HACCP), listini personalizzati per cliente,
-                  sconti volume, ricambi collegati, schede tecniche PDF, immagini multiple.
+                <p className="mt-3 text-sm text-gray-700">
+                  Aggiorna prima ordini e pagamenti in sospeso, poi allinea catalogo e contenuti home.
                 </p>
-                <p className="mt-3 text-xs text-gray-400">Collega Supabase per gestire il catalogo reale</p>
-              </div>
-            </div>
-          )}
-
-          {/* ═══ CLIENTI / CRM ═══ */}
-          {activeTab === 'clienti' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <h2 className="text-xl font-bold text-gray-900">Clienti / CRM</h2>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-                  <Plus className="w-4 h-4" /> Nuovo cliente
-                </button>
               </div>
 
-              {/* KPI clienti */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <KpiCard label="Clienti attivi" value={MOCK_CLIENTS.filter(c => c.stato === 'attivo').length.toString()} icon={Users} color="bg-green-50 text-green-700" />
-                <KpiCard label="Fatturato totale clienti" value={`\u20AC${MOCK_CLIENTS.reduce((s, c) => s + c.fatturato, 0).toLocaleString('it-IT')}`} icon={Euro} color="bg-blue-50 text-blue-700" />
-                <KpiCard label="Credito totale concesso" value={`\u20AC${MOCK_CLIENTS.reduce((s, c) => s + c.credito, 0).toLocaleString('it-IT')}`} icon={CreditCard} color="bg-purple-50 text-purple-700" />
-                <KpiCard label="Clienti inattivi" value={MOCK_CLIENTS.filter(c => c.stato === 'inattivo').length.toString()} icon={AlertTriangle} color="bg-red-50 text-red-700" />
-              </div>
-
-              {/* Search */}
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text" value={clientSearch} onChange={e => setClientSearch(e.target.value)}
-                  placeholder="Cerca per nome, email, P.IVA..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-200 bg-white"
-                />
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left bg-gray-50">
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Azienda</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Tipo</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Citta</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Ordini</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Fatturato</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Credito</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Ultimo ordine</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredClients.map(c => (
-                        <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="px-4 py-3">
-                            <p className="font-medium text-gray-900">{c.nome}</p>
-                            <p className="text-[10px] text-gray-500">{c.referente} — {c.piva}</p>
-                          </td>
-                          <td className="px-4 py-3"><StatBadge text={c.tipo} variant="blue" /></td>
-                          <td className="px-4 py-3 text-gray-600 text-xs">{c.citta}</td>
-                          <td className="px-4 py-3 text-center font-semibold text-gray-900">{c.ordini}</td>
-                          <td className="px-4 py-3 font-semibold text-gray-900">{'\u20AC'}{c.fatturato.toLocaleString('it-IT')}</td>
-                          <td className="px-4 py-3">
-                            <div className="text-xs">
-                              <span className="font-semibold text-gray-900">{'\u20AC'}{c.creditoUsato.toLocaleString('it-IT')}</span>
-                              <span className="text-gray-400"> / {'\u20AC'}{c.credito.toLocaleString('it-IT')}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3"><StatBadge text={c.stato === 'attivo' ? 'Attivo' : 'Inattivo'} variant={c.stato === 'attivo' ? 'green' : 'red'} /></td>
-                          <td className="px-4 py-3 text-xs text-gray-600">{c.ultimoOrdine}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <h2 className="text-xl font-bold text-gray-900">Overview operativo</h2>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Prodotti gestiti</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.products}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Articoli pubblicati</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.publishedArticles}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Ordini registrati</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.orders}</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Fatturato ordini</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(metrics.revenue)}</p>
                 </div>
               </div>
-            </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <h3 className="font-bold text-gray-900 mb-3">Checklist controllo qualità</h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Prezzi e sconti aggiornati da fonte unica prodotto</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Blog pubblicato/schedulato con contenuti editabili</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Hero Home e testi promozionali gestibili da pannello</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Tracciamento modifiche con audit locale</li>
+                </ul>
+              </div>
+            </section>
           )}
 
-          {/* ═══ PREVENTIVI ═══ */}
-          {activeTab === 'preventivi' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Preventivi / RFQ</h2>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-                  <Plus className="w-4 h-4" /> Nuovo preventivo
-                </button>
+          {activeTab === 'products' && (
+            <section className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-gray-900">Prodotti: prezzi, disponibilita e immagini</h2>
+                <div className="flex items-center gap-2">
+                  <input
+                    value={bulkDiscountPercent}
+                    onChange={(event) => setBulkDiscountPercent(event.target.value)}
+                    placeholder="Sconto %"
+                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <button
+                    onClick={handleBulkDiscount}
+                    className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
+                  >
+                    Applica sconto massivo
+                  </button>
+                </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left bg-gray-50">
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">#</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Data</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Cliente</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Prodotti</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Totale</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Scadenza</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Azioni</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {MOCK_QUOTES.map(q => (
-                        <tr key={q.id} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="px-5 py-3 font-mono text-xs font-semibold text-gray-700">{q.id}</td>
-                          <td className="px-5 py-3 text-gray-600 text-xs">{q.data}</td>
-                          <td className="px-5 py-3 font-medium text-gray-900">{q.cliente}</td>
-                          <td className="px-5 py-3 text-center text-gray-700">{q.prodotti}</td>
-                          <td className="px-5 py-3 font-bold text-gray-900">{'\u20AC'}{q.totale.toLocaleString('it-IT')}</td>
-                          <td className="px-5 py-3 text-xs text-gray-600">{q.scadenza}</td>
-                          <td className="px-5 py-3">
-                            <StatBadge
-                              text={q.stato === 'in_attesa' ? 'In attesa' : q.stato === 'approvato' ? 'Approvato' : q.stato === 'convertito' ? 'Convertito' : 'Scaduto'}
-                              variant={q.stato === 'in_attesa' ? 'amber' : q.stato === 'approvato' ? 'green' : q.stato === 'convertito' ? 'blue' : 'red'}
+              <div className="grid gap-3 sm:grid-cols-[1fr,240px]">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={productSearch}
+                    onChange={(event) => setProductSearch(event.target.value)}
+                    placeholder="Cerca nome, SKU o slug"
+                    className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 text-sm"
+                  />
+                </div>
+                <select
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  className="px-3 py-2.5 rounded-lg border border-gray-300 text-sm"
+                >
+                  <option value="">Tutte le categorie finali</option>
+                  {[...new Set(products.map((product) => product.categorySlug))].sort().map((slug) => (
+                    <option key={slug} value={slug}>{slug}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="overflow-auto border border-gray-200 rounded-xl bg-white">
+                <table className="w-full min-w-[1100px] text-sm">
+                  <thead>
+                    <tr className="text-left bg-gray-50 border-b border-gray-200">
+                      <th className="px-3 py-3">Prodotto</th>
+                      <th className="px-3 py-3">Categoria finale</th>
+                      <th className="px-3 py-3">Disponibilita</th>
+                      <th className="px-3 py-3">Prezzo netto</th>
+                      <th className="px-3 py-3">Prezzo barrato</th>
+                      <th className="px-3 py-3">Immagine principale</th>
+                      <th className="px-3 py-3">Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map((product) => {
+                      const draft = getDraft(product);
+                      return (
+                        <tr key={product.id} className="border-b border-gray-100 align-top">
+                          <td className="px-3 py-3">
+                            <input
+                              value={draft.name}
+                              onChange={(event) => {
+                                setProductDrafts((prev) => ({
+                                  ...prev,
+                                  [product.slug]: {
+                                    ...prev[product.slug],
+                                    name: event.target.value,
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-md border border-gray-300 px-2 py-1.5"
+                            />
+                            <p className="text-[11px] text-gray-500 mt-1">SKU: {product.sku}</p>
+                          </td>
+                          <td className="px-3 py-3 text-xs text-gray-600">{product.categorySlug}</td>
+                          <td className="px-3 py-3">
+                            <select
+                              value={draft.availability}
+                              onChange={(event) => {
+                                setProductDrafts((prev) => ({
+                                  ...prev,
+                                  [product.slug]: {
+                                    ...prev[product.slug],
+                                    availability: event.target.value as Product['availability'],
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-md border border-gray-300 px-2 py-1.5"
+                            >
+                              {availabilityOptions.map((status) => (
+                                <option key={status} value={status}>{status}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-3 py-3">
+                            <input
+                              type="number"
+                              value={Number(draft.priceNet).toString()}
+                              onChange={(event) => {
+                                setProductDrafts((prev) => ({
+                                  ...prev,
+                                  [product.slug]: {
+                                    ...prev[product.slug],
+                                    priceNet: Number(event.target.value),
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-md border border-gray-300 px-2 py-1.5"
                             />
                           </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-1">
-                              {q.stato === 'in_attesa' && (
-                                <button className="p-1.5 text-green-700 hover:bg-green-50 rounded-lg text-xs font-semibold" title="Approva">
-                                  <Check className="w-4 h-4" />
-                                </button>
-                              )}
-                              {(q.stato === 'approvato' || q.stato === 'in_attesa') && (
-                                <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg" title="Converti in ordine">
-                                  <ShoppingCart className="w-4 h-4" />
-                                </button>
-                              )}
+                          <td className="px-3 py-3">
+                            <input
+                              type="number"
+                              value={draft.originalPriceNet || ''}
+                              onChange={(event) => {
+                                setProductDrafts((prev) => ({
+                                  ...prev,
+                                  [product.slug]: {
+                                    ...prev[product.slug],
+                                    originalPriceNet: event.target.value ? Number(event.target.value) : undefined,
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-md border border-gray-300 px-2 py-1.5"
+                            />
+                          </td>
+                          <td className="px-3 py-3">
+                            <input
+                              value={draft.images?.[0] || ''}
+                              onChange={(event) => {
+                                setProductDrafts((prev) => ({
+                                  ...prev,
+                                  [product.slug]: {
+                                    ...prev[product.slug],
+                                    images: [event.target.value],
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-md border border-gray-300 px-2 py-1.5"
+                            />
+                          </td>
+                          <td className="px-3 py-3">
+                            <button
+                              onClick={() => handleSaveProduct(product)}
+                              className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-white text-xs font-semibold hover:bg-green-700"
+                            >
+                              <Save className="w-3.5 h-3.5" /> Salva
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'categories' && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900">Struttura categorie (3 livelli)</h2>
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <p className="text-sm text-gray-600 mb-4">
+                  Questa sezione governa la tassonomia del catalogo. Ogni categoria principale contiene
+                  sottocategorie di livello 1, che a loro volta contengono le categorie finali (foglie) dove si mostrano i prodotti.
+                </p>
+
+                <div className="space-y-4">
+                  {catalogMenu.map((category) => (
+                    <div key={category.key} className="rounded-lg border border-gray-200 p-4">
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <h3 className="font-semibold text-gray-900">{category.label}</h3>
+                        <span className="text-xs text-gray-500">{category.groups.length} sottocategorie livello 1</span>
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {category.groups.map((group) => (
+                          <div key={group.slug} className="rounded-md border border-gray-100 bg-gray-50 p-3">
+                            <p className="text-sm font-semibold text-gray-900">{group.title}</p>
+                            <p className="text-xs text-gray-500 mt-1">{group.sections.length} categorie finali</p>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {group.sections.slice(0, 4).map((section) => (
+                                <span key={section.slug} className="rounded-full bg-white px-2 py-0.5 text-[11px] text-gray-600 border border-gray-200">
+                                  {section.title}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'blog' && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Gestione Blog</h2>
+                <button
+                  onClick={handleNewArticle}
+                  className="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+                >
+                  <Plus className="w-4 h-4" /> Nuovo articolo
+                </button>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-[1fr,1.1fr]">
+                <div className="bg-white border border-gray-200 rounded-xl overflow-auto max-h-[70vh]">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left bg-gray-50 border-b border-gray-200">
+                        <th className="px-3 py-3">Titolo</th>
+                        <th className="px-3 py-3">Stato</th>
+                        <th className="px-3 py-3">Azioni</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {blogArticles.map((article) => (
+                        <tr key={article.id} className="border-b border-gray-100">
+                          <td className="px-3 py-3">
+                            <p className="font-semibold text-gray-900">{article.title}</p>
+                            <p className="text-xs text-gray-500">/{article.slug}</p>
+                          </td>
+                          <td className="px-3 py-3 text-xs text-gray-600">{article.status}</td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleLoadArticle(article)}
+                                className="text-xs font-semibold text-blue-700 hover:text-blue-900"
+                              >
+                                Modifica
+                              </button>
+                              <button
+                                onClick={() => handleDeleteArticle(article)}
+                                className="text-xs font-semibold text-red-600 hover:text-red-800 inline-flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Elimina
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -633,303 +721,297 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* ═══ FINANZA ═══ */}
-          {activeTab === 'finanza' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Finanza e Fatturazione</h2>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h3 className="font-semibold text-gray-900">Editor articolo</h3>
+                  <input
+                    value={articleForm.title}
+                    onChange={(event) => {
+                      const title = event.target.value;
+                      setArticleForm((prev) => ({ ...prev, title, slug: prev.slug || slugify(title) }));
+                    }}
+                    placeholder="Titolo articolo"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                  <input
+                    value={articleForm.slug}
+                    onChange={(event) => setArticleForm((prev) => ({ ...prev, slug: slugify(event.target.value) }))}
+                    placeholder="slug-articolo"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                  <input
+                    value={articleForm.image}
+                    onChange={(event) => setArticleForm((prev) => ({ ...prev, image: event.target.value }))}
+                    placeholder="URL immagine copertina"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                  <textarea
+                    value={articleForm.excerpt}
+                    onChange={(event) => setArticleForm((prev) => ({ ...prev, excerpt: event.target.value }))}
+                    placeholder="Estratto breve"
+                    rows={3}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
+                  <textarea
+                    value={articleForm.content}
+                    onChange={(event) => setArticleForm((prev) => ({ ...prev, content: event.target.value }))}
+                    placeholder="Contenuto articolo"
+                    rows={10}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  />
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <KpiCard label="Fatture emesse" value={MOCK_INVOICES.length.toString()} icon={Receipt} color="bg-blue-50 text-blue-700" />
-                <KpiCard label="Totale fatturato" value={`\u20AC${MOCK_INVOICES.reduce((s, f) => s + f.totale, 0).toLocaleString('it-IT')}`} icon={Euro} color="bg-green-50 text-green-700" />
-                <KpiCard label="Da incassare" value={`\u20AC${MOCK_INVOICES.filter(f => f.stato !== 'pagata').reduce((s, f) => s + f.totale, 0).toLocaleString('it-IT')}`} icon={Clock} color="bg-amber-50 text-amber-700" />
-                <KpiCard label="Fatture scadute" value={MOCK_INVOICES.filter(f => f.stato === 'scaduta').length.toString()} icon={AlertTriangle} color="bg-red-50 text-red-700" />
-              </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <select
+                      value={articleForm.category}
+                      onChange={(event) => setArticleForm((prev) => ({ ...prev, category: event.target.value }))}
+                      className="rounded-lg border border-gray-300 px-3 py-2"
+                    >
+                      <option value="Guida all'acquisto">Guida all'acquisto</option>
+                      <option value="Guida operativa">Guida operativa</option>
+                      <option value="Manutenzione">Manutenzione</option>
+                    </select>
 
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="font-bold text-gray-900">Registro fatture</h3>
-                  <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 text-xs font-semibold rounded-lg hover:bg-gray-50">
-                    <Download className="w-3.5 h-3.5" /> Esporta
+                    <select
+                      value={articleForm.status}
+                      onChange={(event) => setArticleForm((prev) => ({ ...prev, status: event.target.value as BlogArticle['status'] }))}
+                      className="rounded-lg border border-gray-300 px-3 py-2"
+                    >
+                      <option value="draft">Bozza</option>
+                      <option value="scheduled">Programmato</option>
+                      <option value="published">Pubblicato</option>
+                      <option value="archived">Archiviato</option>
+                    </select>
+                  </div>
+
+                  {articleForm.status === 'scheduled' && (
+                    <input
+                      type="datetime-local"
+                      value={articleForm.scheduledAt ? articleForm.scheduledAt.slice(0, 16) : ''}
+                      onChange={(event) => setArticleForm((prev) => ({ ...prev, scheduledAt: event.target.value ? new Date(event.target.value).toISOString() : '' }))}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                    />
+                  )}
+
+                  <button
+                    onClick={handleSaveArticle}
+                    className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                  >
+                    <Save className="w-4 h-4" /> Salva articolo
                   </button>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left bg-gray-50">
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Fattura</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Data</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Cliente</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Imponibile</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">IVA</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Scadenza</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {MOCK_INVOICES.map(f => (
-                        <tr key={f.id} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="px-5 py-3 font-mono text-xs font-semibold text-gray-700">{f.id}</td>
-                          <td className="px-5 py-3 text-gray-600 text-xs">{f.data}</td>
-                          <td className="px-5 py-3 font-medium text-gray-900">{f.cliente}</td>
-                          <td className="px-5 py-3 font-semibold text-gray-900">{'\u20AC'}{f.totale.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
-                          <td className="px-5 py-3 text-gray-600">{'\u20AC'}{f.iva.toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
-                          <td className="px-5 py-3 text-xs text-gray-600">{f.scadenza}</td>
-                          <td className="px-5 py-3">
-                            <StatBadge text={f.stato === 'pagata' ? 'Pagata' : f.stato === 'emessa' ? 'Emessa' : 'Scaduta'} variant={f.stato === 'pagata' ? 'green' : f.stato === 'emessa' ? 'blue' : 'red'} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* ═══ MARKETING ═══ */}
-          {activeTab === 'marketing' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Marketing e Promozioni</h2>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-                  <Plus className="w-4 h-4" /> Nuova promozione
+          {activeTab === 'home' && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900">Contenuti Home e barra promozionale</h2>
+              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                <input
+                  value={homeForm.promoText}
+                  onChange={(event) => setHomeForm((prev) => ({ ...prev, promoText: event.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  placeholder="Testo promozionale barra"
+                />
+                <input
+                  value={homeForm.serviceText}
+                  onChange={(event) => setHomeForm((prev) => ({ ...prev, serviceText: event.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  placeholder="Messaggio di servizio"
+                />
+                <input
+                  value={homeForm.heroImage}
+                  onChange={(event) => setHomeForm((prev) => ({ ...prev, heroImage: event.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  placeholder="URL immagine hero"
+                />
+                <input
+                  value={homeForm.heroTitle}
+                  onChange={(event) => setHomeForm((prev) => ({ ...prev, heroTitle: event.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  placeholder="Titolo hero"
+                />
+                <textarea
+                  value={homeForm.heroDescription}
+                  onChange={(event) => setHomeForm((prev) => ({ ...prev, heroDescription: event.target.value }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                  rows={4}
+                  placeholder="Descrizione hero"
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    value={homeForm.heroCtaLabel}
+                    onChange={(event) => setHomeForm((prev) => ({ ...prev, heroCtaLabel: event.target.value }))}
+                    className="rounded-lg border border-gray-300 px-3 py-2"
+                    placeholder="Testo pulsante"
+                  />
+                  <input
+                    value={homeForm.heroCtaPath}
+                    onChange={(event) => setHomeForm((prev) => ({ ...prev, heroCtaPath: event.target.value }))}
+                    className="rounded-lg border border-gray-300 px-3 py-2"
+                    placeholder="/categoria/linea-caldo"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveHomeContent}
+                  className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                >
+                  <Save className="w-4 h-4" /> Salva contenuti Home
                 </button>
               </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <KpiCard label="Promozioni attive" value={MOCK_PROMOS.filter(p => p.attiva).length.toString()} icon={Tag} color="bg-green-50 text-green-700" />
-                <KpiCard label="Coupon utilizzati" value={MOCK_PROMOS.reduce((s, p) => s + p.utilizzi, 0).toString()} icon={Percent} color="bg-blue-50 text-blue-700" />
-                <KpiCard label="Tasso conversione" value="3.2%" icon={TrendingUp} trend="+0.4%" trendUp color="bg-purple-50 text-purple-700" />
-                <KpiCard label="Carrelli abbandonati" value="18" icon={ShoppingCart} color="bg-amber-50 text-amber-700" />
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left bg-gray-50">
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Promozione</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Tipo</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Valore</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Utilizzi</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Scadenza</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {MOCK_PROMOS.map(p => (
-                        <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="px-5 py-3 font-medium text-gray-900">{p.nome}</td>
-                          <td className="px-5 py-3"><StatBadge text={p.tipo} variant="blue" /></td>
-                          <td className="px-5 py-3 font-semibold text-gray-900">{p.valore}</td>
-                          <td className="px-5 py-3 text-center text-gray-700">{p.utilizzi}</td>
-                          <td className="px-5 py-3 text-xs text-gray-600">{p.scadenza}</td>
-                          <td className="px-5 py-3"><StatBadge text={p.attiva ? 'Attiva' : 'Scaduta'} variant={p.attiva ? 'green' : 'gray'} /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            </section>
           )}
 
-          {/* ═══ SPEDIZIONI ═══ */}
-          {activeTab === 'spedizioni' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Spedizioni e Logistica</h2>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <KpiCard label="In transito" value={MOCK_SHIPMENTS.filter(s => s.stato === 'in_transito').length.toString()} icon={Truck} color="bg-blue-50 text-blue-700" />
-                <KpiCard label="Consegnate (mese)" value={MOCK_SHIPMENTS.filter(s => s.stato === 'consegnato').length.toString()} icon={CheckCircle} color="bg-green-50 text-green-700" />
-                <KpiCard label="Corrieri attivi" value="3" icon={Globe} color="bg-purple-50 text-purple-700" />
-                <KpiCard label="Tempo medio consegna" value="2.1 gg" icon={Clock} color="bg-amber-50 text-amber-700" />
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left bg-gray-50">
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Spedizione</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Ordine</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Corriere</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Tracking</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Destinazione</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Partenza</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Consegna</th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">Stato</th>
+          {activeTab === 'orders' && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900">Ordini e stati</h2>
+              <div className="bg-white border border-gray-200 rounded-xl overflow-auto">
+                <table className="w-full min-w-[980px] text-sm">
+                  <thead>
+                    <tr className="text-left bg-gray-50 border-b border-gray-200">
+                      <th className="px-3 py-3">Ordine</th>
+                      <th className="px-3 py-3">Cliente</th>
+                      <th className="px-3 py-3">Pagamento</th>
+                      <th className="px-3 py-3">Totale</th>
+                      <th className="px-3 py-3">Stato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order.id} className="border-b border-gray-100">
+                        <td className="px-3 py-3">
+                          <p className="font-semibold text-gray-900">{order.id}</p>
+                          <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleString('it-IT')}</p>
+                        </td>
+                        <td className="px-3 py-3">
+                          <p className="font-medium text-gray-900">{order.customer.name}</p>
+                          <p className="text-xs text-gray-500">{order.customer.email}</p>
+                        </td>
+                        <td className="px-3 py-3 text-xs text-gray-600">{order.paymentMethod === 'card' ? 'Carta (Stripe)' : 'Bonifico'}</td>
+                        <td className="px-3 py-3 font-semibold text-gray-900">{formatCurrency(order.total)}</td>
+                        <td className="px-3 py-3">
+                          <select
+                            value={order.status}
+                            onChange={(event) => {
+                              const nextStatus = event.target.value as OrderStatus;
+                              updateOrderStatus(order.id, nextStatus);
+                              appendAudit('update_order_status', order.id, `Nuovo stato: ${nextStatus}`);
+                              toast.success(`Ordine ${order.id} aggiornato`);
+                            }}
+                            className="rounded-md border border-gray-300 px-2 py-1.5"
+                          >
+                            {orderStatusOptions.map((status) => (
+                              <option key={status} value={status}>{orderStatusLabel(status)}</option>
+                            ))}
+                          </select>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {MOCK_SHIPMENTS.map(s => (
-                        <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="px-5 py-3 font-mono text-xs font-semibold text-gray-700">{s.id}</td>
-                          <td className="px-5 py-3 font-mono text-xs text-gray-600">{s.ordine}</td>
-                          <td className="px-5 py-3 font-medium text-gray-900">{s.corriere}</td>
-                          <td className="px-5 py-3 font-mono text-xs text-blue-600">{s.tracking}</td>
-                          <td className="px-5 py-3 text-gray-600">{s.destinazione}</td>
-                          <td className="px-5 py-3 text-xs text-gray-600">{s.partenza}</td>
-                          <td className="px-5 py-3 text-xs text-gray-600">{s.consegna}</td>
-                          <td className="px-5 py-3"><StatBadge text={s.stato === 'in_transito' ? 'In transito' : 'Consegnato'} variant={s.stato === 'in_transito' ? 'blue' : 'green'} /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* ═══ CONTENUTI ═══ */}
-          {activeTab === 'contenuti' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Gestione Contenuti</h2>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-                  <Plus className="w-4 h-4" /> Nuova guida
-                </button>
+          {activeTab === 'customers' && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900">Clienti e account B2B</h2>
+              <div className="bg-white border border-gray-200 rounded-xl overflow-auto">
+                <table className="w-full min-w-[720px] text-sm">
+                  <thead>
+                    <tr className="text-left bg-gray-50 border-b border-gray-200">
+                      <th className="px-3 py-3">Cliente</th>
+                      <th className="px-3 py-3">Email</th>
+                      <th className="px-3 py-3">Ordini</th>
+                      <th className="px-3 py-3">Totale</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customers.map((customer) => (
+                      <tr key={customer.email} className="border-b border-gray-100">
+                        <td className="px-3 py-3 font-medium text-gray-900">{customer.name}</td>
+                        <td className="px-3 py-3 text-gray-600">{customer.email}</td>
+                        <td className="px-3 py-3 text-gray-700">{customer.orders}</td>
+                        <td className="px-3 py-3 font-semibold text-gray-900">{formatCurrency(customer.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-bold text-gray-900 mb-1">Gestione guide, banner e pagine</h3>
-                <p className="text-sm text-gray-500 max-w-md mx-auto">
-                  Guide all'acquisto, articoli tecnici, banner promozionali, pagine informative, FAQ e SEO.
+            </section>
+          )}
+
+          {activeTab === 'payments' && (
+            <section className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900">Pagamenti e controllo coerenza</h2>
+              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${isStripeConfigured() ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+                    {isStripeConfigured() ? 'Stripe configurato' : 'Stripe non configurato'}
+                  </span>
+                  <span className="text-xs text-gray-500">Publishable key: {getStripePublishableKey().slice(0, 16)}...</span>
+                </div>
+                <p className="text-sm text-gray-700">
+                  La configurazione della chiave Stripe resta confinata nell&apos;area account (Gestione Pagamenti)
+                  come richiesto. Qui in admin viene mostrato solo lo stato operativo.
+                </p>
+                <p className="text-sm text-gray-700">
+                  Tutti i prezzi esposti su lista prodotti, pagina prodotto, carrello e checkout derivano
+                  dalla stessa sorgente dati prodotto e vengono aggiornati centralmente.
                 </p>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* ═══ IMPOSTAZIONI ═══ */}
-          {activeTab === 'impostazioni' && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Impostazioni</h2>
-
-              {/* Stripe */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Stripe — Pagamenti</h3>
-                    <p className="text-xs text-gray-500">Configura le chiavi API per accettare pagamenti</p>
-                  </div>
-                  <div className="ml-auto">
-                    {isStripeConfigured() ? (
-                      <StatBadge text="Configurato" variant="green" />
-                    ) : (
-                      <StatBadge text="Non configurato" variant="amber" />
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Publishable Key</label>
-                    <div className="flex gap-3">
-                      <input type="text" value={stripeKey} onChange={e => { setStripeKey(e.target.value); setStripeSaved(false); }}
-                        placeholder="pk_test_..." className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none font-mono" />
-                      <button onClick={() => { if (stripeKey.trim()) { persistStripePublishableKey(stripeKey.trim()); setStripeSaved(true); setTimeout(() => setStripeSaved(false), 3000); } }}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-bold text-sm rounded-xl hover:bg-green-700 transition-colors">
-                        <Save className="w-4 h-4" /> Salva
-                      </button>
-                    </div>
-                    {stripeSaved && <p className="mt-1.5 text-sm text-green-700 font-semibold flex items-center gap-1.5"><CheckCircle className="w-4 h-4" /> Salvata</p>}
-                  </div>
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                    <p className="text-xs text-amber-800">
-                      <strong>Secret Key</strong>: va su Cloudflare Pages &gt; Settings &gt; Environment Variables &gt; <code className="bg-amber-100 px-1 rounded">STRIPE_SECRET_KEY</code>
-                    </p>
-                  </div>
-                </div>
+          {activeTab === 'audit' && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Audit modifiche</h2>
+                <button
+                  onClick={() => {
+                    if (!window.confirm('Vuoi svuotare il registro audit?')) return;
+                    setAuditItems([]);
+                    saveAudit([]);
+                    toast.success('Registro audit svuotato');
+                  }}
+                  className="text-xs font-semibold text-red-600 hover:text-red-800"
+                >
+                  Svuota registro
+                </button>
               </div>
 
-              {/* Email SMTP */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Email — Gmail SMTP</h3>
-                    <p className="text-xs text-gray-500">Configura l'invio email (verifica, password, ordini)</p>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-2">
-                  <p className="text-sm font-semibold text-blue-900">Variabili d'ambiente da configurare su Cloudflare Pages:</p>
-                  <div className="bg-white rounded-lg p-3 font-mono text-xs space-y-1">
-                    <p><span className="text-blue-600">GMAIL_USER</span> = tua-email@gmail.com</p>
-                    <p><span className="text-blue-600">GMAIL_APP_PASSWORD</span> = xxxx xxxx xxxx xxxx</p>
-                  </div>
-                  <p className="text-xs text-blue-700">
-                    Vai su <strong>Cloudflare Pages &gt; Settings &gt; Environment Variables</strong> e aggiungi queste due variabili.
-                    La App Password la generi da <strong>Google Account &gt; Sicurezza &gt; Password per le app</strong>.
-                  </p>
-                </div>
+              <div className="bg-white border border-gray-200 rounded-xl overflow-auto max-h-[70vh]">
+                <table className="w-full text-sm min-w-[900px]">
+                  <thead>
+                    <tr className="text-left bg-gray-50 border-b border-gray-200">
+                      <th className="px-3 py-3">Quando</th>
+                      <th className="px-3 py-3">Operatore</th>
+                      <th className="px-3 py-3">Azione</th>
+                      <th className="px-3 py-3">Target</th>
+                      <th className="px-3 py-3">Dettaglio</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auditItems.map((item) => (
+                      <tr key={item.id} className="border-b border-gray-100">
+                        <td className="px-3 py-3 text-xs text-gray-600">{new Date(item.at).toLocaleString('it-IT')}</td>
+                        <td className="px-3 py-3 text-xs text-gray-600">{item.actor}</td>
+                        <td className="px-3 py-3 font-medium text-gray-800">{item.action}</td>
+                        <td className="px-3 py-3 text-gray-700">{item.target}</td>
+                        <td className="px-3 py-3 text-xs text-gray-600">{item.details}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-
-              {/* Supabase */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-green-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Supabase — Database e Auth</h3>
-                    <p className="text-xs text-gray-500">Backend, database, autenticazione reale e storage</p>
-                  </div>
-                  <div className="ml-auto"><StatBadge text="Piano Free" variant="green" /></div>
-                </div>
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Stato attuale: Mock locale</p>
-                  <p className="text-xs text-gray-600 mb-3">
-                    Il sistema usa dati locali (localStorage). Per passare alla produzione, collega un progetto Supabase.
-                    Piano Free: 50.000 utenti, 500MB database, 1GB storage — perfetto per il test.
-                  </p>
-                  <div className="bg-white rounded-lg p-3 font-mono text-xs space-y-1">
-                    <p><span className="text-green-700">VITE_SUPABASE_URL</span> = https://xxx.supabase.co</p>
-                    <p><span className="text-green-700">VITE_SUPABASE_ANON_KEY</span> = eyJ...</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sicurezza e ruoli */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Sicurezza e Ruoli</h3>
-                    <p className="text-xs text-gray-500">Gestione permessi e log attivita</p>
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-3 gap-3">
-                  <div className="border border-gray-200 rounded-lg p-3">
-                    <Shield className="w-5 h-5 text-gray-700 mb-1" />
-                    <p className="text-sm font-bold text-gray-900">Admin</p>
-                    <p className="text-xs text-gray-500">Accesso completo</p>
-                  </div>
-                  <div className="border border-gray-200 rounded-lg p-3">
-                    <Users className="w-5 h-5 text-green-700 mb-1" />
-                    <p className="text-sm font-bold text-gray-900">Cliente B2B</p>
-                    <p className="text-xs text-gray-500">Ordini, fatture, profilo</p>
-                  </div>
-                  <div className="border border-gray-200 rounded-lg p-3">
-                    <BadgeCheck className="w-5 h-5 text-amber-600 mb-1" />
-                    <p className="text-sm font-bold text-gray-900">Pro / Rivenditore</p>
-                    <p className="text-xs text-gray-500">Commissioni, referral</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </section>
           )}
+        </div>
+      </div>
 
-        </main>
+      <div className="max-w-[1520px] mx-auto px-4 pb-6 text-xs text-gray-500 inline-flex items-center gap-1">
+        <ArrowUpRight className="w-3.5 h-3.5" />
+        Workflow sicuro: modifica -&gt; conferma -&gt; audit -&gt; propagazione storefront.
       </div>
     </div>
   );

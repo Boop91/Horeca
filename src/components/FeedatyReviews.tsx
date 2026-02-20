@@ -133,7 +133,12 @@ export default function FeedatyReviews() {
       {/* Sottotitolo */}
       <p className="text-sm text-gray-600 mb-6">
         Le nostre recensioni a 4 e 5 stelle.{' '}
-        <a href="#" className="text-[#1e3a5f] underline font-medium hover:text-[#F0B858]">
+        <a
+          href="https://www.feedaty.com/recensioni/bianchipro"
+          className="text-[#1e3a5f] underline font-medium hover:text-[#F0B858]"
+          target="_blank"
+          rel="noreferrer"
+        >
           Clicca qui per leggerle tutte &gt;
         </a>
       </p>

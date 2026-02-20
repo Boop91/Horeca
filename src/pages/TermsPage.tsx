@@ -1,17 +1,8 @@
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
-
 export default function TermsPage() {
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-600">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">Condizioni di Vendita</span>
-      </nav>
-
-      <article className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm prose prose-gray max-w-none">
-        <h1>Condizioni Generali di Vendita</h1>
+    <main className="app-page-shell py-8 mb-20">
+      <article className="app-surface bg-white rounded-xl border border-gray-200 p-8 shadow-sm prose prose-gray max-w-none">
+        <h1 className="app-page-title">Condizioni Generali di Vendita</h1>
 
         <h2>1. Ambito di applicazione</h2>
         <p>Le presenti condizioni generali di vendita regolano i rapporti contrattuali tra BianchiPro S.r.l. (di seguito "Venditore") e il cliente professionale (di seguito "Acquirente") per l'acquisto di attrezzature professionali per la ristorazione tramite il sito bianchipro.it.</p>

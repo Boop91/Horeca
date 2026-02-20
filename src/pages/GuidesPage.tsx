@@ -11,41 +11,36 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, ArrowRight, ChevronRight, Clock } from 'lucide-react';
-import { guides } from '../data/guides';
+import { BookOpen, ArrowRight, Clock } from 'lucide-react';
+import { useStoreBlogArticles } from '../lib/storefrontStore';
 
 /* ── Categorie disponibili per il filtro ───────────────────────────── */
 const TUTTE = 'Tutte';
 const categories = [TUTTE, "Guida all'acquisto", 'Guida operativa', 'Manutenzione'];
 
 export default function GuidesPage() {
+  const blogArticles = useStoreBlogArticles(false);
+
   /* Stato del filtro categoria attivo */
   const [activeCategory, setActiveCategory] = useState(TUTTE);
 
   /* Guide filtrate in base alla categoria selezionata */
   const filteredGuides =
     activeCategory === TUTTE
-      ? guides
-      : guides.filter((g) => g.category === activeCategory);
+      ? blogArticles
+      : blogArticles.filter((g) => g.category === activeCategory);
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-
-      {/* ── Breadcrumb di navigazione ──────────────────────────────── */}
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-600">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">Guide</span>
-      </nav>
+    <main className="app-page-shell py-8 mb-20">
 
       {/* ── Intestazione della pagina ──────────────────────────────── */}
       <div className="mb-10">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-3">
-          Le Guide di BianchiPro
+        <h1 className="app-page-title text-3xl font-extrabold text-gray-900 mb-3">
+          Blog e Guide BianchiPro
         </h1>
-        <p className="text-lg text-gray-600 max-w-3xl">
-          Approfondimenti, consigli e guide tecniche per scegliere le
-          attrezzature giuste per la tua attivita Ho.Re.Ca.
+        <p className="app-page-subtitle text-lg text-gray-600 max-w-3xl">
+          Approfondimenti tecnici e consigli pratici per attrezzature professionali
+          nel settore ristorazione e ospitalita.
         </p>
       </div>
 
@@ -74,9 +69,19 @@ export default function GuidesPage() {
             to={`/guide/${guide.slug}`}
             className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-green-300 transition-all flex flex-col"
           >
-            {/* Placeholder immagine copertina */}
-            <div className="h-44 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
-              <BookOpen className="w-12 h-12 text-green-300" />
+            <div className="h-44 bg-gray-100 overflow-hidden">
+              {guide.image ? (
+                <img
+                  src={guide.image}
+                  alt={guide.title}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-green-300" />
+                </div>
+              )}
             </div>
 
             {/* Corpo della card */}

@@ -47,7 +47,7 @@ export const guides: Guide[] = [
     author: 'Redazione BianchiPro',
     publishedAt: '2024-03-10',
     readTime: 7,
-    image: '/images/guides/abbattitore.webp',
+    image: 'https://www.bianchipro.it/img/cms/Immagini%20Blog/Refrigerazione/smart-home-3317442_1920%20-%20Copia.jpg',
     relatedCategories: ['abbattitori'],
     content: `L'abbattitore di temperatura e uno degli strumenti piu importanti nella ristorazione professionale moderna. Il suo compito e semplice ma fondamentale: portare rapidamente la temperatura degli alimenti appena cotti da +90 °C a +3 °C (abbattimento positivo) oppure fino a -18 °C (abbattimento negativo, detto anche surgelazione rapida). Questo processo blocca la proliferazione batterica e preserva qualita, sapore e consistenza del cibo.
 
@@ -91,7 +91,7 @@ I prezzi partono da circa 1.500 euro per un 5 teglie entry-level fino a oltre 6.
     author: 'Redazione BianchiPro',
     publishedAt: '2024-04-22',
     readTime: 8,
-    image: '/images/guides/forno-pizza.webp',
+    image: 'https://www.bianchipro.it/img/cms/Immagini%20Blog/Forni%20professionali/Forno__professionali_.jpg',
     relatedCategories: ['forni-per-pizza', 'forni-a-convezione'],
     content: `La scelta del forno per pizza e una delle decisioni piu importanti per chi apre o rinnova una pizzeria. Le due opzioni principali — forno elettrico e forno a gas — hanno caratteristiche tecniche molto diverse che influenzano la qualita del prodotto, i costi di gestione e la praticita d'uso.
 
@@ -135,7 +135,7 @@ Per la pizzeria classica con alti volumi, il forno a gas offre il miglior rappor
     author: 'Redazione BianchiPro',
     publishedAt: '2024-05-15',
     readTime: 9,
-    image: '/images/guides/attrezzare-pizzeria.webp',
+    image: 'https://www.bianchipro.it/img/cms/Immagini%20Blog/Linea%20Caldo/Copertina%20Linea%20Caldo.jpg',
     relatedCategories: ['forni-per-pizza', 'impastatrice-a-spirale', 'banchi-pizza', 'stendipizza'],
     content: `Aprire una pizzeria richiede una pianificazione attenta delle attrezzature. Un investimento iniziale ben calibrato evita sprechi, rallentamenti e costose sostituzioni nei primi anni di attivita. Ecco la lista completa di cio che serve, suddivisa per area di lavoro.
 
@@ -191,7 +191,7 @@ Per una pizzeria completa di medie dimensioni (50-80 coperti), l'investimento in
     author: 'Redazione BianchiPro',
     publishedAt: '2024-06-05',
     readTime: 6,
-    image: '/images/guides/manutenzione-frigo.webp',
+    image: 'https://www.bianchipro.it/img/cms/Immagini%20Blog/Refrigerazione/smart-home-3317442_1920%20-%20Copia.jpg',
     relatedCategories: ['frigoriferi-professionali', 'congelatori-professionali'],
     content: `Un frigorifero professionale ben mantenuto dura piu a lungo, consuma meno energia e garantisce la sicurezza alimentare richiesta dalla normativa HACCP. Ecco le operazioni di manutenzione che ogni ristoratore dovrebbe conoscere e pianificare.
 

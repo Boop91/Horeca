@@ -1,0 +1,21 @@
+# Regole operative (obbligatorie)
+
+Questo progetto usa una squadra multi-ruolo.
+
+Obiettivo: lavorare come “team” con controlli incrociati, evitando modifiche casuali e chiudendo ogni ciclo con verifiche.
+
+## Ruoli
+- coordinatore: unico che decide cosa fare e cosa modificare.
+- esperienza_uso: analizza flussi, architettura informativa, prevenzione errore, coerenza, prevedibilità.
+- interfaccia: analizza griglia, allineamenti, spaziature, gerarchie, consistenza, contrasto.
+- contenuti: analizza etichette, microtesti, messaggi di errore, chiarezza.
+- collaudo: esegue controlli e prova a “rompere” il lavoro, segnala regressioni.
+
+## Metodo (sempre uguale)
+1) osservare lo stato attuale (cosa funziona / cosa no, prove).
+2) proporre cambiamenti (motivazioni tecniche).
+3) modificare il minimo necessario.
+4) verificare: comandi, pagina, controlli.
+5) aggiornare _SQUADRA_DIARIO.md con: cosa fatto, file toccati, perché, come verificato, cosa resta.
+
+Divieto: lavorare “a sensazione” senza verifica.

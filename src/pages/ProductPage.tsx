@@ -1,5 +1,4 @@
 import { useParams, Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
 import ProductGallery from '../components/ProductGallery';
 import ProductDetails from '../components/ProductDetails';
 import ProductTabs from '../components/ProductTabs';
@@ -9,34 +8,9 @@ import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { accessories } from '../components/CompactAccessories';
-import { getProductBySlug, getAllProducts } from '../data/products/realProducts';
+import { getStoreProductBySlug, useStoreProducts } from '../lib/storefrontStore';
 import mainImage from '../assets/f4ed0b934aabb9cdf06af64854509a5ac97f8256.png';
 import { toast } from 'sonner';
-
-/**
- * Mappa dei categorySlug alle etichette leggibili per i breadcrumb.
- * Copre tutte le categorie presenti nei prodotti reali.
- */
-const categoryLabels: Record<string, string> = {
-  'abbattitori': 'Abbattitori',
-  'forni-per-pizza': 'Forni per Pizza',
-  'friggitrici': 'Friggitrici',
-  'frigoriferi-professionali': 'Frigoriferi Professionali',
-  'fry-top': 'Fry Top',
-  'forni-a-convezione': 'Forni a Convezione',
-};
-
-/**
- * Mappa delle categorie alle macro-categorie del catalogo (per il breadcrumb).
- */
-const categoryToParent: Record<string, { label: string; slug: string }> = {
-  'abbattitori': { label: 'Linea Freddo', slug: 'linea-freddo' },
-  'frigoriferi-professionali': { label: 'Linea Freddo', slug: 'linea-freddo' },
-  'forni-per-pizza': { label: 'Linea Caldo', slug: 'linea-caldo' },
-  'friggitrici': { label: 'Linea Caldo', slug: 'linea-caldo' },
-  'fry-top': { label: 'Linea Caldo', slug: 'linea-caldo' },
-  'forni-a-convezione': { label: 'Linea Caldo', slug: 'linea-caldo' },
-};
 
 /**
  * Formatta un numero come prezzo in euro con virgola decimale.
@@ -48,6 +22,7 @@ function formatPrice(value: number): string {
 
 export default function ProductPage() {
   const { slug } = useParams();
+  const storeProducts = useStoreProducts();
 
   // Stato configurazione prodotto (stessa interfaccia originale di ProductDetails)
   const [quantity, setQuantity] = useState(1);
@@ -59,19 +34,19 @@ export default function ProductPage() {
   const { toggleItem, isFavorite } = useFavorites();
 
   // Carica il prodotto dallo slug dell'URL
-  const product = slug ? getProductBySlug(slug) : undefined;
+  const product = slug ? getStoreProductBySlug(slug) : undefined;
 
   // Pagina 404 se il prodotto non esiste
   if (!product) {
     return (
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 py-16 mb-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Prodotto non trovato</h1>
-        <p className="text-gray-600 mb-8">
+      <main className="app-page-shell py-16 mb-20 text-center">
+        <h1 className="app-page-title text-3xl font-bold text-gray-900 mb-4">Prodotto non trovato</h1>
+        <p className="app-page-subtitle text-gray-600 mb-8">
           Il prodotto che stai cercando non esiste o non e piu disponibile.
         </p>
         <Link
           to="/categoria/linea-freddo"
-          className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+          className="app-action-primary inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
         >
           Torna al Catalogo
         </Link>
@@ -134,42 +109,13 @@ export default function ProductPage() {
     toast.success(`${accessory.name}`, { description: 'Aggiunto al carrello', duration: 2000 });
   };
 
-  // Dati per il breadcrumb dinamico
-  const parentCategory = categoryToParent[product.categorySlug];
-  const categoryLabel = categoryLabels[product.categorySlug] || product.categorySlug;
-
   // Prodotti correlati: stessa categoria, escluso il prodotto corrente (max 4)
-  const relatedProducts = getAllProducts()
+  const relatedFromStore = storeProducts
     .filter((p) => p.categorySlug === product.categorySlug && p.id !== product.id)
     .slice(0, 4);
 
   return (
-    <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 py-8 mb-20">
-      {/* Breadcrumb di navigazione dinamico */}
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-600 transition-colors">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        {parentCategory && (
-          <>
-            <Link
-              to={`/categoria/${parentCategory.slug}`}
-              className="text-gray-600 hover:text-green-600 transition-colors"
-            >
-              {parentCategory.label}
-            </Link>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </>
-        )}
-        <Link
-          to={`/categoria/${product.categorySlug}`}
-          className="text-gray-600 hover:text-green-600 transition-colors"
-        >
-          {categoryLabel}
-        </Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium truncate max-w-[200px]">{product.name}</span>
-      </nav>
-
+    <main className="app-page-shell py-8 mb-20">
       {/* Sezione prodotto principale: galleria a sinistra, dettagli a destra */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8 lg:items-start">
@@ -177,6 +123,8 @@ export default function ProductPage() {
           <ProductGallery
             isFavorite={isCurrentFavorite}
             onToggleFavorite={handleToggleFavorite}
+            images={product.images}
+            productName={product.name}
           />
           {/* Dettagli prodotto (interfaccia originale non modificata) */}
           <ProductDetails
@@ -216,13 +164,13 @@ export default function ProductPage() {
       </div>
 
       {/* Sezione prodotti correlati dalla stessa categoria */}
-      {relatedProducts.length > 0 && (
+      {relatedFromStore.length > 0 && (
         <>
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-12" />
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Prodotti Correlati</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((related) => (
+              {relatedFromStore.map((related) => (
                 <Link
                   key={related.id}
                   to={`/prodotto/${related.slug}`}

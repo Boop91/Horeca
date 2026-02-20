@@ -3,6 +3,9 @@ import { Wallet, ArrowUpRight, ArrowDownLeft, CreditCard, Building2, TrendingUp,
 import { useAuth, type WalletTransaction } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 
+const formatEuro = (value: number) =>
+  value.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+
 export default function WalletPage() {
   const { user, depositToWallet, requestWithdrawal } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'withdraw' | 'history'>('overview');
@@ -33,7 +36,7 @@ export default function WalletPage() {
     // Simulate Stripe payment
     setTimeout(() => {
       depositToWallet(amount);
-      toast.success(`${amount.toFixed(2)} caricati nel wallet!`);
+      toast.success(`${formatEuro(amount)} caricati nel wallet!`);
       setDepositAmount('');
       setDepositLoading(false);
       setActiveTab('overview');
@@ -105,25 +108,25 @@ export default function WalletPage() {
 
         <div className="mb-4">
           <p className="text-white/70 text-sm mb-1">Saldo disponibile</p>
-          <p className="text-4xl font-black tracking-tight">{user.walletBalance.toFixed(2)}</p>
+          <p className="text-4xl font-black tracking-tight">{formatEuro(user.walletBalance)}</p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
             <p className="text-white/70 text-xs mb-0.5">Depositi totali</p>
             <p className="text-lg font-bold">
-              {user.walletTransactions.filter(t => t.type === 'deposit').reduce((s, t) => s + t.amount, 0).toFixed(2)}
+              {formatEuro(user.walletTransactions.filter(t => t.type === 'deposit').reduce((s, t) => s + t.amount, 0))}
             </p>
           </div>
           {isPro && (
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
               <p className="text-white/70 text-xs mb-0.5">Commissioni totali</p>
-              <p className="text-lg font-bold">{totalCommissions.toFixed(2)}</p>
+              <p className="text-lg font-bold">{formatEuro(totalCommissions)}</p>
             </div>
           )}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
             <p className="text-white/70 text-xs mb-0.5">In attesa prelievo</p>
-            <p className="text-lg font-bold">{pendingWithdrawals.toFixed(2)}</p>
+            <p className="text-lg font-bold">{formatEuro(pendingWithdrawals)}</p>
           </div>
         </div>
       </div>
@@ -152,11 +155,11 @@ export default function WalletPage() {
             </button>
           </div>
           {(user.referralUsages || []).length > 0 && (
-            <p className="mt-3 text-sm text-amber-700 font-semibold">
-              <TrendingUp className="w-4 h-4 inline mr-1" />
-              {(user.referralUsages || []).length} utilizzi - {totalCommissions.toFixed(2)} guadagnati
-            </p>
-          )}
+              <p className="mt-3 text-sm text-amber-700 font-semibold">
+                <TrendingUp className="w-4 h-4 inline mr-1" />
+              {(user.referralUsages || []).length} utilizzi - {formatEuro(totalCommissions)} guadagnati
+              </p>
+            )}
         </div>
       )}
 
@@ -167,28 +170,28 @@ export default function WalletPage() {
           className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'overview' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
           <Wallet className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'overview' ? 'text-green-700' : 'text-gray-400'}`} />
-          <span className={`text-xs font-bold ${activeTab === 'overview' ? 'text-green-700' : 'text-gray-600'}`}>Panoramica</span>
+          <span className={`text-sm font-bold ${activeTab === 'overview' ? 'text-green-700' : 'text-gray-600'}`}>Panoramica</span>
         </button>
         <button
           onClick={() => setActiveTab('deposit')}
           className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'deposit' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
           <Plus className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'deposit' ? 'text-green-700' : 'text-gray-400'}`} />
-          <span className={`text-xs font-bold ${activeTab === 'deposit' ? 'text-green-700' : 'text-gray-600'}`}>Ricarica</span>
+          <span className={`text-sm font-bold ${activeTab === 'deposit' ? 'text-green-700' : 'text-gray-600'}`}>Ricarica</span>
         </button>
         <button
           onClick={() => setActiveTab('withdraw')}
           className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'withdraw' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
           <Minus className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'withdraw' ? 'text-green-700' : 'text-gray-400'}`} />
-          <span className={`text-xs font-bold ${activeTab === 'withdraw' ? 'text-green-700' : 'text-gray-600'}`}>Preleva</span>
+          <span className={`text-sm font-bold ${activeTab === 'withdraw' ? 'text-green-700' : 'text-gray-600'}`}>Preleva</span>
         </button>
         <button
           onClick={() => setActiveTab('history')}
           className={`p-3 rounded-xl border-2 transition-all text-center ${activeTab === 'history' ? 'border-green-600 bg-green-50 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
         >
           <Clock className={`w-5 h-5 mx-auto mb-1 ${activeTab === 'history' ? 'text-green-700' : 'text-gray-400'}`} />
-          <span className={`text-xs font-bold ${activeTab === 'history' ? 'text-green-700' : 'text-gray-600'}`}>Cronologia</span>
+          <span className={`text-sm font-bold ${activeTab === 'history' ? 'text-green-700' : 'text-gray-600'}`}>Cronologia</span>
         </button>
       </div>
 
@@ -210,7 +213,7 @@ export default function WalletPage() {
                   <p className="font-bold text-green-900">Ricarica Wallet</p>
                   <p className="text-xs text-green-700">Aggiungi fondi con carta</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-green-400 ml-auto group-hover:trangray-x-0.5 transition-transform" />
+                <ChevronRight className="w-4 h-4 text-green-400 ml-auto group-hover:translate-x-0.5 transition-transform" />
               </button>
               <button
                 onClick={() => setActiveTab('withdraw')}
@@ -223,7 +226,7 @@ export default function WalletPage() {
                   <p className="font-bold text-blue-900">Preleva Fondi</p>
                   <p className="text-xs text-blue-700">Trasferisci su conto o carta</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-blue-400 ml-auto group-hover:trangray-x-0.5 transition-transform" />
+                <ChevronRight className="w-4 h-4 text-blue-400 ml-auto group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
@@ -364,7 +367,7 @@ export default function WalletPage() {
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-1">Importo personalizzato</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -trangray-y-1/2 text-gray-400 font-bold">EUR</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">EUR</span>
               <input
                 type="number"
                 value={depositAmount}
@@ -485,7 +488,7 @@ export default function WalletPage() {
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-1">Importo da prelevare</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -trangray-y-1/2 text-gray-400 font-bold">EUR</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">EUR</span>
               <input
                 type="number"
                 value={withdrawAmount}

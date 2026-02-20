@@ -1,15 +1,23 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, CreditCard, Lock, Loader2 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { STRIPE_CONFIG, getStripePublishableKey, persistStripePublishableKey } from '../config/stripe';
+import { Link } from 'react-router-dom';
+import { STRIPE_CONFIG, getStripePublishableKey } from '../config/stripe';
 import { projectId } from '../utils/supabase/info';
+import { lockBodyScroll, unlockBodyScroll } from '../utils/bodyScrollLock';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   total: number;
   items: any[];
+  customer?: {
+    name: string;
+    email: string;
+    phone: string;
+    shippingAddress: string;
+  };
   onSuccess: (orderId: string) => void;
 }
 
@@ -39,23 +47,35 @@ async function postApi(path: string, payload: unknown) {
   throw new Error(lastError);
 }
 
-function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; items: any[]; onClose: () => void; onSuccess: (orderId: string) => void; }) {
+function CheckoutForm({
+  total,
+  items,
+  customer,
+  onClose,
+  onSuccess,
+}: {
+  total: number;
+  items: any[];
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+    shippingAddress: string;
+  };
+  onClose: () => void;
+  onSuccess: (orderId: string) => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
 
-    if (!customerName || !customerEmail || !customerPhone) {
-      setError('Compila tutti i campi obbligatori');
+    if (!customer.name || !customer.email || !customer.phone) {
+      setError('Dati cliente mancanti. Torna al checkout e completa i campi obbligatori.');
       return;
     }
 
@@ -73,7 +93,7 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
         elements,
         confirmParams: {
           return_url: window.location.href,
-          receipt_email: customerEmail,
+          receipt_email: customer.email,
         },
         redirect: 'if_required',
       });
@@ -84,10 +104,10 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
       }
 
       const data = await postApi('orders', {
-        customerName,
-        customerEmail,
-        customerPhone,
-        customerAddress,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerPhone: customer.phone,
+        customerAddress: customer.shippingAddress,
         items,
         total,
         paymentIntentId: paymentIntent?.id,
@@ -105,11 +125,11 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-        <h3 className="font-bold text-gray-900 text-lg">Dati di Fatturazione</h3>
-        <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base" placeholder="Nome e Cognome *" required />
-        <input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base" placeholder="Email *" required />
-        <input type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base" placeholder="Telefono *" required />
-        <textarea value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-600 text-base resize-none" placeholder="Indirizzo di spedizione" rows={2} />
+        <h3 className="font-bold text-gray-900 text-lg">Dati cliente</h3>
+        <p className="text-sm text-gray-700"><strong>Nome:</strong> {customer.name}</p>
+        <p className="text-sm text-gray-700"><strong>Email:</strong> {customer.email}</p>
+        <p className="text-sm text-gray-700"><strong>Telefono:</strong> {customer.phone}</p>
+        <p className="text-sm text-gray-700"><strong>Indirizzo:</strong> {customer.shippingAddress || 'Non specificato'}</p>
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4">
@@ -117,7 +137,7 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
         <PaymentElement />
       </div>
 
-      {error && <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3"><p className="text-sm font-semibold text-red-800">{error}</p></div>}
+      {error && <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3" role="alert"><p className="text-sm font-semibold text-red-800">{error}</p></div>}
 
       <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
         <div className="flex items-center justify-between mb-3">
@@ -133,21 +153,32 @@ function CheckoutForm({ total, items, onClose, onSuccess }: { total: number; ite
   );
 }
 
-export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess }: CheckoutModalProps) {
+export default function CheckoutModal({ isOpen, onClose, total, items, customer, onSuccess }: CheckoutModalProps) {
+  const normalizedCustomer = customer ?? {
+    name: '',
+    email: '',
+    phone: '',
+    shippingAddress: '',
+  };
   const [publishableKey, setPublishableKey] = useState(getStripePublishableKey());
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [localKeyInput, setLocalKeyInput] = useState('');
+  const initRequestKeyRef = useRef<string | null>(null);
+  const requestIdRef = useRef(0);
+  const hasRequiredCustomerData = Boolean(
+    normalizedCustomer.name.trim() &&
+    normalizedCustomer.email.trim() &&
+    normalizedCustomer.phone.trim(),
+  );
 
   /* Blocca lo scroll del body quando il modal è aperto */
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+    if (!isOpen) return undefined;
+
+    setPublishableKey(getStripePublishableKey());
+    lockBodyScroll();
+    return () => unlockBodyScroll();
   }, [isOpen]);
 
   const stripePromise = useMemo(() => {
@@ -155,21 +186,47 @@ export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess
     return loadStripe(publishableKey);
   }, [publishableKey]);
 
-  const initializePayment = async () => {
+  const initializePayment = useCallback(async () => {
     if (clientSecret) return;
+    const requestKey = `${publishableKey}|${total.toFixed(2)}|${normalizedCustomer.email}`;
+    if (initRequestKeyRef.current === requestKey) return;
+
+    initRequestKeyRef.current = requestKey;
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     try {
-      const data = await postApi('create-payment-intent', { amount: total, currency: STRIPE_CONFIG.currency });
+      const data = await postApi('create-payment-intent', {
+        amount: total,
+        currency: STRIPE_CONFIG.currency,
+        customerEmail: normalizedCustomer.email,
+      });
+      if (requestId !== requestIdRef.current) return;
       setClientSecret(data.clientSecret);
     } catch (err: any) {
+      if (requestId !== requestIdRef.current) return;
+      initRequestKeyRef.current = null;
       setError(err.message || 'Impossibile inizializzare il pagamento');
     } finally {
+      if (requestId !== requestIdRef.current) return;
       setLoading(false);
     }
-  };
+  }, [clientSecret, normalizedCustomer.email, publishableKey, total]);
 
-  if (isOpen && !clientSecret && !loading && !error) initializePayment();
+  useEffect(() => {
+    if (isOpen) return;
+    requestIdRef.current += 1;
+    setClientSecret(null);
+    setLoading(false);
+    setError(null);
+    initRequestKeyRef.current = null;
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !stripePromise || !hasRequiredCustomerData || clientSecret || loading || error) return;
+    void initializePayment();
+  }, [clientSecret, error, hasRequiredCustomerData, initializePayment, isOpen, loading, stripePromise]);
+
   if (!isOpen) return null;
 
   const options = {
@@ -182,21 +239,47 @@ export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkout-modal-title"
+      >
         <div className="sticky top-0 bg-white border-b-2 border-gray-200 p-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-black text-gray-900">Completa il Pagamento</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors" disabled={loading}><X className="w-6 h-6 text-gray-600" /></button>
+          <h2 id="checkout-modal-title" className="text-2xl font-black text-gray-900">Completa il Pagamento</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors" disabled={loading} aria-label="Chiudi pagamento"><X className="w-6 h-6 text-gray-600" /></button>
         </div>
 
         <div className="p-6">
           {!stripePromise && (
             <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-orange-900 mb-3">⚠️ Publishable Key Non Configurata</h3>
-              <p className="text-sm text-orange-800 mb-4">Inserisci la Publishable key (pk_test...) per abilitare i pagamenti.</p>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input type="text" value={localKeyInput} onChange={(event) => setLocalKeyInput(event.target.value)} placeholder="pk_test_..." className="flex-1 px-3 py-2 text-sm border border-orange-200 rounded-md" />
-                <button type="button" onClick={() => { if (!localKeyInput.trim()) return; persistStripePublishableKey(localKeyInput.trim()); setPublishableKey(localKeyInput.trim()); }} className="px-4 py-2 text-sm font-bold text-white bg-orange-600 rounded-md hover:bg-orange-700">Salva chiave</button>
-              </div>
+              <h3 className="text-lg font-bold text-orange-900 mb-3">⚠️ Pagamenti non configurati</h3>
+              <p className="text-sm text-orange-800 mb-4">
+                La chiave Stripe va configurata solo in area account, sezione gestione pagamenti.
+              </p>
+              <Link
+                to="/account/pagamenti"
+                className="inline-flex items-center rounded-md bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700"
+                onClick={onClose}
+              >
+                Vai a Gestione Pagamenti
+              </Link>
+            </div>
+          )}
+
+          {stripePromise && !hasRequiredCustomerData && (
+            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-orange-900 mb-3">Dati cliente incompleti</h3>
+              <p className="text-sm text-orange-800 mb-4">
+                Per procedere al pagamento completa prima i dati cliente nel checkout.
+              </p>
+              <Link
+                to="/checkout"
+                className="inline-flex items-center rounded-md bg-orange-600 px-4 py-2 text-sm font-bold text-white hover:bg-orange-700"
+                onClick={onClose}
+              >
+                Vai al checkout
+              </Link>
             </div>
           )}
 
@@ -210,13 +293,23 @@ export default function CheckoutModal({ isOpen, onClose, total, items, onSuccess
           {stripePromise && error && (
             <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
               <p className="text-sm font-semibold text-red-800">{error}</p>
-              <button onClick={() => { setError(null); setClientSecret(null); initializePayment(); }} className="mt-3 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">Riprova</button>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setClientSecret(null);
+                  initRequestKeyRef.current = null;
+                  void initializePayment();
+                }}
+                className="mt-3 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+              >
+                Riprova
+              </button>
             </div>
           )}
 
           {stripePromise && clientSecret && (
             <Elements stripe={stripePromise} options={options}>
-              <CheckoutForm total={total} items={items} onClose={onClose} onSuccess={onSuccess} />
+              <CheckoutForm total={total} items={items} customer={normalizedCustomer} onClose={onClose} onSuccess={onSuccess} />
             </Elements>
           )}
         </div>

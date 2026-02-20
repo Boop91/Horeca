@@ -19,8 +19,7 @@
  *
  * Rotta: /glossario
  */
-import { Link } from 'react-router-dom';
-import { ChevronRight, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState } from 'react';
 
 const glossaryTerms = [
@@ -68,15 +67,9 @@ export default function GlossaryPage() {
   );
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-700">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">Glossario</span>
-      </nav>
-
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-3">Glossario Ho.Re.Ca.</h1>
-      <p className="text-lg text-gray-600 mb-8">Terminologia tecnica del settore attrezzature professionali per la ristorazione.</p>
+    <main className="app-page-shell py-8 mb-20">
+      <h1 className="app-page-title text-3xl font-extrabold text-gray-900 mb-3">Glossario Ho.Re.Ca.</h1>
+      <p className="app-page-subtitle text-lg text-gray-600 mb-8">Terminologia tecnica del settore attrezzature professionali per la ristorazione.</p>
 
       <div className="relative mb-8">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

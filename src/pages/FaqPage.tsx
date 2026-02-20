@@ -20,7 +20,7 @@
  */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search } from 'lucide-react';
 
 const faqs = [
   {
@@ -114,15 +114,9 @@ export default function FaqPage() {
     : faqs;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-700">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium">FAQ</span>
-      </nav>
-
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-3">Domande Frequenti</h1>
-      <p className="text-lg text-gray-600 mb-6">
+    <main className="app-page-shell py-8 mb-20">
+      <h1 className="app-page-title text-3xl font-extrabold text-gray-900 mb-3">Domande Frequenti</h1>
+      <p className="app-page-subtitle text-lg text-gray-600 mb-6">
         Risposte alle domande più comuni dei nostri clienti professionisti.
       </p>
 
@@ -148,7 +142,7 @@ export default function FaqPage() {
                 const isOpen = openItems.has(key);
                 return (
                   <div key={key} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <button onClick={() => toggle(key)}
+                    <button type="button" onClick={() => toggle(key)}
                       className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50">
                       <span className="font-medium text-gray-900 pr-4">{q}</span>
                       {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />}
@@ -180,10 +174,10 @@ export default function FaqPage() {
           Il nostro team è a disposizione per rispondere a qualsiasi domanda.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="tel:+390541620526" className="px-5 py-2.5 bg-green-700 hover:bg-green-700 text-white font-bold rounded-xl transition-colors text-sm">
+          <a href="tel:+390541620526" className="app-action-primary px-5 py-2.5 bg-green-700 hover:bg-green-700 text-white font-bold rounded-xl transition-colors text-sm">
             Chiama: 0541 620526
           </a>
-          <Link to="/contatti" className="px-5 py-2.5 bg-white border border-green-300 text-green-700 font-bold rounded-xl hover:bg-green-100 transition-colors text-sm">
+          <Link to="/contatti" className="app-action-secondary px-5 py-2.5 bg-white border border-green-300 text-green-700 font-bold rounded-xl hover:bg-green-100 transition-colors text-sm">
             Scrivici
           </Link>
         </div>

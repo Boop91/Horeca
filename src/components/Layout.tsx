@@ -19,7 +19,6 @@
  *   - FavoritesDrawer  → pannello laterale preferiti
  *   - AuthModal        → modale di login / registrazione
  *   - Toaster          → notifiche toast (in basso a destra)
- *   - BackendStatus    → indicatore stato connessione backend
  *
  * Ogni overlay critico è avvolto in un <AppErrorBoundary> per evitare
  * che un errore in un drawer faccia crashare l'intera pagina.
@@ -28,13 +27,13 @@
  */
 
 import { Outlet } from 'react-router-dom';
-import Header from './Header';
+import HomeV2Header from './home_v2/HomeV2Header';
+import AppBreadcrumbs from './AppBreadcrumbs';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 import FavoritesDrawer from './FavoritesDrawer';
 import AuthModal from './auth/AuthModal';
 import AppErrorBoundary from './AppErrorBoundary';
-import BackendStatus from './BackendStatus';
 import { Toaster } from './ui/sonner';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
@@ -56,17 +55,25 @@ export default function Layout() {
   return (
     // Error boundary globale: cattura errori di rendering nell'intero layout
     <AppErrorBoundary>
-      <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        <a href="#main-content" className="skip-link">
+          Vai al contenuto principale
+        </a>
+
         {/* ── Intestazione con navigazione, icona carrello e preferiti ── */}
-        <Header
+        <HomeV2Header
           cartItemCount={totalCartItems}
           onCartClick={() => setCartOpen(true)}
           favoritesCount={favoriteItems.length}
           onFavoritesClick={() => setFavoritesOpen(true)}
         />
 
+        <AppBreadcrumbs />
+
         {/* ── Contenuto della rotta corrente (iniettato da React Router) ── */}
-        <Outlet />
+        <div id="main-content" tabIndex={-1}>
+          <Outlet />
+        </div>
 
         {/* ── Pie' di pagina ── */}
         <Footer />
@@ -96,11 +103,6 @@ export default function Layout() {
 
         {/* ── Notifiche toast globali ── */}
         <Toaster position="bottom-right" />
-
-        {/* ── Indicatore stato backend (connessione Supabase / API) ── */}
-        <AppErrorBoundary>
-          <BackendStatus />
-        </AppErrorBoundary>
       </div>
     </AppErrorBoundary>
   );

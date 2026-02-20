@@ -1,0 +1,34 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+[features]
+multi_agent = true
+apps = false
+
+[agents]
+max_threads = 4
+
+[agents.coordinatore]
+description = "Coordina: decide, assegna, integra, verifica. Chiede agli altri solo quando serve."
+config_file = "agents/coordinatore.toml"
+
+[agents.esperienza]
+description = "Esperienza d’uso: flussi, architettura informativa, prevenzione errori, chiarezza, coerenza."
+config_file = "agents/esperienza.toml"
+
+[agents.interfaccia]
+description = "Interfaccia: griglia, allineamenti, gerarchie, componenti, stati, contrasto, coerenza visiva."
+config_file = "agents/interfaccia.toml"
+
+[agents.collaudo]
+description = "Collaudo: esegue comandi, controlli, test, regressioni; conferma con prove."
+config_file = "agents/collaudo.toml"
+
+[mcp_servers.linear]
+enabled = false
+required = false
+
+[mcp_servers.notion]
+enabled = false
+required = false
