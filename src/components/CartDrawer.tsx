@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ShoppingCart, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import CheckoutModal from './CheckoutModal';
-import { toast } from 'sonner';
+import { lockBodyScroll, unlockBodyScroll } from '../utils/bodyScrollLock';
 
 interface CartItem {
   id: string;
@@ -34,8 +34,27 @@ const getAccessoriesTotal = (item: CartItem) =>
   (item.accessories || []).reduce((acc, accessory) => acc + toNumber(accessory.price), 0);
 
 export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onClearCart, isExpanded, setIsExpanded }: CartDrawerProps) {
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [quote, setQuote] = useState({ subtotal: 0, vat: 0, total: 0 });
+  const navigate = useNavigate();
+
+  /* Blocca lo scroll del body quando il drawer è espanso */
+  useEffect(() => {
+    if (!isExpanded) return undefined;
+
+    lockBodyScroll();
+    return () => unlockBodyScroll();
+  }, [isExpanded]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    const reserveOffset = !isExpanded && items.length > 0 ? '102px' : '0px';
+    root.style.setProperty('--cart-dock-offset', reserveOffset);
+
+    return () => {
+      root.style.setProperty('--cart-dock-offset', '0px');
+    };
+  }, [isExpanded, items.length]);
 
   const normalizedItems = useMemo(
     () =>
@@ -70,7 +89,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
 
     const fetchQuote = async () => {
       try {
-        const response = await fetch('/.netlify/functions/preventivo', {
+        const response = await fetch('/api/preventivo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items: normalizedItems }),
@@ -96,68 +115,64 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
     return () => controller.abort();
   }, [normalizedItems, isEmpty, totalPrice]);
 
-  const handleCheckoutSuccess = (orderId: string) => {
-    toast.success('🎉 Pagamento completato!', {
-      description: `Ordine ${orderId} confermato. Riceverai una email di conferma.`,
-      duration: 5000,
-    });
-    onClearCart();
-    setCheckoutOpen(false);
+  const goToCheckout = () => {
+    setIsExpanded(false);
+    navigate('/checkout');
   };
 
   return (
     <>
-      <div className={`fixed bottom-0 left-0 right-0 z-40 transition-all duration-300 ${isExpanded ? 'translate-y-full' : 'translate-y-0'}`}>
-        <div className={`bg-gray-100 text-gray-900 shadow-xl p-2 ${isEmpty ? 'border-t-2 border-gray-300' : 'border-t-2 border-gray-400 space-y-2'}`}>
-          <button type="button" onClick={() => setIsExpanded(true)} className="w-full px-2 py-2 flex items-center justify-between hover:bg-gray-200/70 rounded-lg transition-colors">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <ShoppingCart className="w-5 h-5 text-gray-700" />
-                {!isEmpty && (
-                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+      {!isEmpty && (
+        <div
+          className={`fixed bottom-0 left-0 right-0 z-[1400] transition-all duration-300 ${
+            isExpanded ? 'translate-y-full pointer-events-none opacity-0' : 'translate-y-0 opacity-100'
+          }`}
+        >
+          <div className="bg-gray-100 text-gray-900 shadow-xl p-2 border-t-2 border-gray-400 space-y-2">
+            <button type="button" onClick={() => setIsExpanded(true)} className="w-full px-2 py-2 flex items-center justify-between hover:bg-gray-200/70 rounded-lg transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <ShoppingCart className="w-5 h-5 text-gray-700" />
+                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                     {totalItems}
                   </span>
-                )}
-              </div>
-              <div className="text-left">
-                <div className="text-sm font-bold text-gray-900">Carrello</div>
-                <div className="text-xs font-semibold text-gray-700">
-                  {isEmpty ? 'Vuoto' : `${totalItems} ${totalItems === 1 ? 'articolo' : 'articoli'}`}
+                </div>
+                <div className="text-left">
+                  <div className="text-sm font-bold text-gray-900">Carrello</div>
+                  <div className="text-xs font-semibold text-gray-700">
+                    {`${totalItems} ${totalItems === 1 ? 'articolo' : 'articoli'}`}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center space-x-3">
-              {!isEmpty && (
+              <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <div className="text-lg font-extrabold text-gray-900">€ {formatPrice(quote.subtotal)}</div>
                   <div className="text-xs font-semibold text-gray-700">Totale</div>
                 </div>
-              )}
-              <ChevronUp className="w-5 h-5 text-gray-700" />
-            </div>
-          </button>
+                <ChevronUp className="w-5 h-5 text-gray-700" />
+              </div>
+            </button>
 
-          {!isEmpty && (
             <button
               type="button"
-              onClick={() => setCheckoutOpen(true)}
-              className="w-full py-2.5 bg-green-500 hover:bg-green-600 text-white font-extrabold rounded-lg transition-colors"
+              onClick={goToCheckout}
+              className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-lg transition-colors"
             >
               Procedi al pagamento · € {formatPrice(quote.total)}
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className={`fixed inset-0 z-50 transition-all duration-300 ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-[1450] transition-all duration-300 ${isExpanded ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div
           className={`absolute inset-0 bg-black transition-opacity duration-300 ${isExpanded ? 'opacity-50' : 'opacity-0'}`}
           onClick={() => setIsExpanded(false)}
         />
 
         <div
-          className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 max-h-[80vh] flex flex-col ${
+          className={`absolute bottom-0 left-0 right-0 z-[1451] bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 max-h-[80vh] flex flex-col ${
             isExpanded ? 'translate-y-0' : 'translate-y-full'
           }`}
         >
@@ -166,7 +181,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
               <div className="relative">
                 <ShoppingCart className="w-6 h-6 text-gray-700" />
                 {!isEmpty && (
-                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
@@ -189,7 +204,7 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
               <button
                 type="button"
                 onClick={() => setIsExpanded(false)}
-                className="py-3 px-6 rounded-lg bg-green-500 text-white font-extrabold text-sm hover:bg-green-600 transition-colors"
+                className="py-3 px-6 rounded-lg bg-green-600 text-white font-extrabold text-sm hover:bg-green-700 transition-colors"
               >
                 Continua lo shopping
               </button>
@@ -285,8 +300,8 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
                 <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={() => setCheckoutOpen(true)}
-                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-extrabold rounded-lg transition-colors"
+                    onClick={goToCheckout}
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-lg transition-colors"
                   >
                     Procedi al pagamento
                   </button>
@@ -304,14 +319,6 @@ export default function CartDrawer({ items, onRemoveItem, onUpdateQuantity, onCl
           )}
         </div>
       </div>
-
-      <CheckoutModal
-        isOpen={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        total={toNumber(quote.total)}
-        items={normalizedItems}
-        onSuccess={handleCheckoutSuccess}
-      />
     </>
   );
 }

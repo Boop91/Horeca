@@ -1,5 +1,7 @@
-import { Heart, X, ChevronDown, ExternalLink } from 'lucide-react';
+import { useEffect } from 'react';
+import { Heart, X, ExternalLink } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { lockBodyScroll, unlockBodyScroll } from '../utils/bodyScrollLock';
 
 interface FavoriteItem {
   id: string;
@@ -17,11 +19,19 @@ interface FavoritesDrawerProps {
 }
 
 export default function FavoritesDrawer({ items, onRemoveItem, isExpanded, setIsExpanded }: FavoritesDrawerProps) {
+  /* Blocca lo scroll del body quando il drawer è aperto */
+  useEffect(() => {
+    if (!isExpanded) return undefined;
+
+    lockBodyScroll();
+    return () => unlockBodyScroll();
+  }, [isExpanded]);
+
   if (!isExpanded) return null;
 
   return (
-    <div 
-      className={`fixed inset-0 z-50 transition-all duration-300 ${
+    <div
+      className={`fixed inset-0 z-[1500] transition-all duration-300 ${
         isExpanded ? 'pointer-events-auto' : 'pointer-events-none'
       }`}
     >

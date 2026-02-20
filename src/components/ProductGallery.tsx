@@ -13,9 +13,11 @@ import mainImage from "../assets/f4ed0b934aabb9cdf06af64854509a5ac97f8256.png";
 interface ProductGalleryProps {
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  images?: string[];
+  productName?: string;
 }
 
-export default function ProductGallery({ isFavorite, onToggleFavorite }: ProductGalleryProps) {
+export default function ProductGallery({ isFavorite, onToggleFavorite, images = [], productName = 'Prodotto professionale' }: ProductGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [heartAnimation, setHeartAnimation] = useState(false);
@@ -26,12 +28,11 @@ export default function ProductGallery({ isFavorite, onToggleFavorite }: Product
     setTimeout(() => setHeartAnimation(false), 600);
   };
 
-  // Solo 3 immagini - stessa immagine in varie angolazioni simulate
-  const images = [
-    mainImage,
-    mainImage,
-    mainImage
-  ];
+  const galleryImages = images.length > 0 ? images : [mainImage];
+  const normalizedGalleryImages = [...galleryImages];
+  while (normalizedGalleryImages.length < 3) {
+    normalizedGalleryImages.push(galleryImages[0]);
+  }
 
   return (
     <>
@@ -40,8 +41,8 @@ export default function ProductGallery({ isFavorite, onToggleFavorite }: Product
         <div className="flex flex-col">
           <div className="relative bg-transparent rounded-lg overflow-visible flex items-center justify-center -m-4">
             <ImageWithFallback
-              src={images[selectedImage]}
-              alt="Abbattitore Professionale AB5514 Forcar"
+              src={normalizedGalleryImages[selectedImage] || mainImage}
+              alt={productName}
               className="w-full h-auto max-h-[600px] object-contain transition-transform duration-300"
             />
             
@@ -77,7 +78,7 @@ export default function ProductGallery({ isFavorite, onToggleFavorite }: Product
 
           {/* Thumbnails SOTTO - PICCOLE E CENTRATE */}
           <div className="flex gap-2 mt-3 justify-center">
-            {images.map((img, index) => (
+            {normalizedGalleryImages.map((img, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
@@ -162,8 +163,8 @@ export default function ProductGallery({ isFavorite, onToggleFavorite }: Product
           
           <div className="relative max-w-6xl max-h-[90vh] flex items-center justify-center">
             <ImageWithFallback
-              src={images[selectedImage]}
-              alt="Abbattitore Professionale AB5514 Forcar - Zoom"
+              src={normalizedGalleryImages[selectedImage] || mainImage}
+              alt={`${productName} - Zoom`}
               className="max-w-full max-h-[90vh] object-contain"
               onClick={(e) => e.stopPropagation()}
             />
@@ -171,7 +172,7 @@ export default function ProductGallery({ isFavorite, onToggleFavorite }: Product
           
           {/* Thumbnail navigation in zoom */}
           <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 bg-white/10 backdrop-blur-md rounded-lg p-3">
-            {images.map((img, index) => (
+            {normalizedGalleryImages.map((img, index) => (
               <button
                 key={index}
                 onClick={(e) => {

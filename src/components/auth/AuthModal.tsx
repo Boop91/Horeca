@@ -1,15 +1,53 @@
-import { useMemo, useState } from 'react';
-import { X, Mail, Lock, User, Phone, Eye, EyeOff, Shield, Crown, CheckCircle2, Send, KeyRound } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  User,
+  Phone,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Send,
+  Building2,
+  MapPin,
+  FileText,
+  X,
+  Mail,
+  Lock,
+  ArrowLeft,
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { projectId } from '../../utils/supabase/info';
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/bodyScrollLock';
+import {
+  validateEmail,
+  validatePhone,
+  validatePartitaIVA,
+  validateCodiceFiscale,
+  validateCAP,
+  validateProvincia,
+} from '../../lib/validation';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface RegisterFormState {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  companyName: string;
+  vatNumber: string;
+  fiscalCode: string;
+  address: string;
+  city: string;
+  cap: string;
+  province: string;
+}
+
 const emailApiCandidates = (path: string) => [
-  `/.netlify/functions/${path}`,
+  `/api/${path}`,
   `https://${projectId}.supabase.co/functions/v1/make-server-d9742687/${path}`,
 ];
 
@@ -29,38 +67,65 @@ async function postEmailApi(path: string, payload: unknown) {
   return false;
 }
 
+const emptyRegisterForm: RegisterFormState = {
+  name: '',
+  email: '',
+  password: '',
+  phone: '',
+  companyName: '',
+  vatNumber: '',
+  fiscalCode: '',
+  address: '',
+  city: '',
+  cap: '',
+  province: '',
+};
+
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { login, register, resendVerificationEmail, verifyEmail, requestPasswordReset } = useAuth();
+
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [role, setRole] = useState<'client' | 'pro'>('client');
+  const [registerStep, setRegisterStep] = useState<1 | 2>(1);
+  const [includeBillingDetails, setIncludeBillingDetails] = useState(false);
+
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  const [registerForm, setRegisterForm] = useState<RegisterFormState>(emptyRegisterForm);
+
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
-  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const registerProgress = useMemo(() => (registerStep === 1 ? 50 : 100), [registerStep]);
 
-  const actionLabel = useMemo(() => {
-    if (loading) return 'Verifica in corso...';
-    return mode === 'login' ? 'Accedi' : 'Registrati';
-  }, [loading, mode]);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    lockBodyScroll();
+    return () => unlockBodyScroll();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setName('');
-    setPhone('');
+    setLoginEmail('');
+    setLoginPassword('');
+    setRegisterForm(emptyRegisterForm);
+    setRegisterStep(1);
+    setIncludeBillingDetails(false);
+    setShowPassword(false);
     setError('');
     setInfo('');
+    setLoading(false);
     setPendingVerificationEmail('');
     setForgotPasswordMode(false);
+    setFieldErrors({});
   };
 
   const handleClose = () => {
@@ -68,68 +133,231 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     resetForm();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const switchMode = (newMode: 'login' | 'register') => {
+    setMode(newMode);
+    setRegisterStep(1);
+    setIncludeBillingDetails(false);
+    setError('');
+    setInfo('');
+    setPendingVerificationEmail('');
+    setForgotPasswordMode(false);
+    setFieldErrors({});
+  };
+
+  const setRegisterValue = (key: keyof RegisterFormState, value: string) => {
+    setRegisterForm((prev) => ({ ...prev, [key]: value }));
+    if (fieldErrors[key]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+  };
+
+  const validateRegisterStepOne = () => {
+    const nextErrors: Record<string, string> = {};
+
+    if (!registerForm.name.trim()) {
+      nextErrors.name = 'Inserisci nome e cognome.';
+    }
+
+    const emailCheck = validateEmail(registerForm.email);
+    if (!emailCheck.valid) {
+      nextErrors.email = emailCheck.error || 'Email non valida.';
+    }
+
+    const phoneCheck = validatePhone(registerForm.phone);
+    if (!phoneCheck.valid) {
+      nextErrors.phone = phoneCheck.error || 'Numero di telefono non valido.';
+    }
+
+    if (registerForm.password.length < 8) {
+      nextErrors.password = 'La password deve avere almeno 8 caratteri.';
+    }
+
+    setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const validateBillingFields = () => {
+    if (!includeBillingDetails) return true;
+
+    const nextErrors: Record<string, string> = {};
+
+    if (registerForm.vatNumber.trim()) {
+      const vatCheck = validatePartitaIVA(registerForm.vatNumber);
+      if (!vatCheck.valid) {
+        nextErrors.vatNumber = vatCheck.error || 'Partita IVA non valida.';
+      }
+    }
+
+    if (registerForm.fiscalCode.trim()) {
+      const fiscalCheck = validateCodiceFiscale(registerForm.fiscalCode);
+      if (!fiscalCheck.valid) {
+        nextErrors.fiscalCode = fiscalCheck.error || 'Codice fiscale non valido.';
+      }
+    }
+
+    if (registerForm.cap.trim()) {
+      const capCheck = validateCAP(registerForm.cap);
+      if (!capCheck.valid) {
+        nextErrors.cap = capCheck.error || 'CAP non valido.';
+      }
+    }
+
+    if (registerForm.province.trim()) {
+      const provinceCheck = validateProvincia(registerForm.province);
+      if (!provinceCheck.valid) {
+        nextErrors.province = provinceCheck.error || 'Provincia non valida.';
+      }
+    }
+
+    setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleLogin = async () => {
+    const loginEmailCheck = validateEmail(loginEmail);
+    if (!loginEmailCheck.valid) {
+      setError(loginEmailCheck.error || 'Inserisci una email valida.');
+      return;
+    }
+
+    if (!loginPassword.trim()) {
+      setError('Inserisci la password per accedere.');
+      return;
+    }
+
+    const result = await Promise.resolve(login(loginEmail, loginPassword));
+    if (!result.success) {
+      setError(result.error || 'Errore di accesso');
+      if (result.requiresEmailVerification && result.email) {
+        setPendingVerificationEmail(result.email);
+      }
+      return;
+    }
+
+    handleClose();
+  };
+
+  const handleRegister = async () => {
+    if (!validateRegisterStepOne()) {
+      setRegisterStep(1);
+      setError('Controlla i campi obbligatori del primo passaggio.');
+      return;
+    }
+
+    if (!validateBillingFields()) {
+      setRegisterStep(2);
+      setError('Controlla i dati di fatturazione inseriti.');
+      return;
+    }
+
+    const result = await Promise.resolve(register({
+      email: registerForm.email,
+      password: registerForm.password,
+      name: registerForm.name,
+      phone: registerForm.phone,
+      companyName: includeBillingDetails ? registerForm.companyName : '',
+      vatNumber: includeBillingDetails ? registerForm.vatNumber : '',
+      fiscalCode: includeBillingDetails ? registerForm.fiscalCode : '',
+      address: includeBillingDetails ? registerForm.address : '',
+      city: includeBillingDetails ? registerForm.city : '',
+      cap: includeBillingDetails ? registerForm.cap : '',
+      province: includeBillingDetails ? registerForm.province : '',
+    }));
+
+    if (!result.success) {
+      setError(result.error || 'Errore di registrazione');
+      return;
+    }
+
+    const registeredEmail = result.email || registerForm.email;
+    setPendingVerificationEmail(registeredEmail);
+    void postEmailApi('send-verification-email', { email: registeredEmail });
+
+    setInfo(`Account creato. Ti abbiamo inviato una mail di conferma a ${registeredEmail}.`);
+    setMode('login');
+    setLoginEmail(registeredEmail);
+    setLoginPassword('');
+    setRegisterStep(1);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
     setInfo('');
     setLoading(true);
 
-    setTimeout(() => {
-      if (mode === 'login') {
-        const result = login(email, password);
-        if (!result.success) {
-          setError(result.error || 'Errore di accesso');
-          if (result.requiresEmailVerification && result.email) setPendingVerificationEmail(result.email);
-          setLoading(false);
+    try {
+      if (forgotPasswordMode) {
+        if (!loginEmail.trim()) {
+          setError('Inserisci la tua email per recuperare la password.');
           return;
         }
-        setLoading(false);
-        handleClose();
+
+        const result = await Promise.resolve(requestPasswordReset(loginEmail));
+        if (!result.success || !result.temporaryPassword) {
+          setError(result.error || 'Impossibile recuperare la password.');
+          return;
+        }
+
+        const sent = await postEmailApi('send-reset-password-email', {
+          email: loginEmail,
+          temporaryPassword: result.temporaryPassword,
+        });
+
+        if (sent) {
+          setInfo(`Email di recupero inviata a ${loginEmail}.`);
+        } else {
+          setInfo(`Password temporanea: ${result.temporaryPassword}`);
+        }
+
         return;
       }
 
-      if (!name.trim()) { setError('Inserisci nome e cognome'); setLoading(false); return; }
-      if (!phone.trim()) { setError('Inserisci il telefono'); setLoading(false); return; }
-      if (password.length < 6) { setError('La password deve avere almeno 6 caratteri'); setLoading(false); return; }
-
-      const result = register({ email, password, name, phone, role });
-      if (!result.success) {
-        setError(result.error || 'Errore di registrazione');
-        setLoading(false);
+      if (mode === 'login') {
+        await handleLogin();
         return;
       }
 
-      const registeredEmail = result.email || email;
-      setPendingVerificationEmail(registeredEmail);
-      void postEmailApi('send-verification-email', { email: registeredEmail });
-      setInfo(`Account creato. Ti abbiamo inviato una mail di conferma a ${registeredEmail}.`);
-      setMode('login');
+      if (registerStep === 1) {
+        if (!validateRegisterStepOne()) {
+          setError('Compila correttamente i campi obbligatori per continuare.');
+          return;
+        }
+        setRegisterStep(2);
+        return;
+      }
+
+      await handleRegister();
+    } finally {
       setLoading(false);
-    }, 200);
+    }
   };
 
   const handleResend = async () => {
-    const targetEmail = pendingVerificationEmail || email;
+    const targetEmail = pendingVerificationEmail || loginEmail || registerForm.email;
     if (!targetEmail) {
-      setError('Inserisci una email valida prima di richiedere un nuovo invio.');
+      setError('Inserisci una email valida.');
       return;
     }
 
     const result = resendVerificationEmail(targetEmail);
     if (!result.success) {
-      setError(result.error || 'Impossibile reinviare la mail in questo momento.');
+      setError(result.error || 'Impossibile reinviare la mail.');
       return;
     }
 
     await postEmailApi('send-verification-email', { email: targetEmail });
-    setInfo(`Ti abbiamo inviato una nuova email di conferma a ${targetEmail}. Controlla anche Spam/Promozioni.`);
+    setInfo(`Nuova email inviata a ${targetEmail}. Controlla anche Spam.`);
     setError('');
-    setInfo('');
-    setPendingVerificationEmail('');
+    setPendingVerificationEmail(targetEmail);
   };
 
   const handleConfirmVerified = () => {
-    const targetEmail = pendingVerificationEmail || email;
+    const targetEmail = pendingVerificationEmail || loginEmail;
     if (!targetEmail) {
       setError('Nessuna email da verificare.');
       return;
@@ -141,140 +369,347 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       return;
     }
 
-    setInfo('Email confermata con successo. Ora puoi accedere.');
+    setInfo('Email confermata. Ora puoi accedere.');
     setError('');
     setPendingVerificationEmail('');
   };
 
-  const handlePasswordReset = async () => {
-    setError('');
-    setInfo('');
+  const inputCls = 'w-full rounded-xl border border-gray-300 py-2.5 px-4 text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none transition-colors';
+  const inputWithIconCls = 'w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-3 text-sm focus:border-green-400 focus:ring-2 focus:ring-green-200 focus:outline-none transition-colors';
 
-    if (!email.trim()) {
-      setError('Inserisci la tua email per recuperare la password.');
-      return;
-    }
+  const registerActionLabel = loading
+    ? 'Elaborazione...'
+    : registerStep === 1
+      ? 'Continua'
+      : 'Crea account';
 
-    const result = requestPasswordReset(email);
-    if (!result.success || !result.temporaryPassword) {
-      setError(result.error || 'Impossibile recuperare la password.');
-      return;
-    }
-
-    const sent = await postEmailApi('send-reset-password-email', {
-      email,
-      temporaryPassword: result.temporaryPassword,
-    });
-
-    if (sent) {
-      setInfo(`Email di recupero inviata a ${email}. Controlla anche Spam/Promozioni.`);
-      return;
-    }
-
-    setInfo(`Password temporanea generata: ${result.temporaryPassword}. Configura endpoint email per invio automatico.`);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/55 p-4" onClick={handleClose}>
-      <div className="mx-auto mt-8 flex min-h-[calc(100vh-2rem)] items-start justify-center sm:mt-10 md:mt-14">
-        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-          <div className="relative rounded-t-2xl border-b border-gray-200 bg-white px-5 py-4">
-            <button onClick={handleClose} className="absolute right-3 top-3 rounded-full p-1.5 hover:bg-gray-100" aria-label="Chiudi modal">
-              <X className="h-5 w-5 text-gray-600" />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100">
-                <Shield className="h-5 w-5 text-green-700" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">{forgotPasswordMode ? 'Recupera password' : mode === 'login' ? 'Accedi al tuo account' : 'Crea il tuo account'}</h2>
-                <p className="text-xs text-gray-500">Pannello compatto, centrato e leggibile.</p>
-              </div>
-            </div>
+  return createPortal(
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/75 backdrop-blur-[2px]"
+      style={{ zIndex: 99999, isolation: 'isolate', pointerEvents: 'auto' }}
+      onClick={handleClose}
+    >
+      <div
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 my-8 rounded-2xl bg-white shadow-2xl"
+        style={{ zIndex: 100000, pointerEvents: 'auto' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-6 py-4 backdrop-blur">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-green-700">Area cliente</p>
+            <h2 className="text-lg font-bold text-gray-900">{mode === 'register' ? 'Registrazione account' : 'Accesso account'}</h2>
           </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="rounded-full border border-gray-300 bg-white p-2 text-gray-700 hover:bg-gray-50 transition-colors"
+            aria-label="Chiudi"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
+        <div className="p-6 pt-6">
           {!forgotPasswordMode && (
-            <div className="mx-5 mt-4 grid grid-cols-2 rounded-xl bg-gray-100 p-1">
-              <button type="button" onClick={() => { setMode('login'); setError(''); setInfo(''); }} className={`rounded-lg px-3 py-2 text-sm font-bold transition ${mode === 'login' ? 'bg-green-700 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}>
+            <div className="mx-auto max-w-sm flex rounded-full bg-gray-100 p-1 mb-6">
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className={`flex-1 rounded-full px-6 py-2.5 text-sm font-bold transition-all ${
+                  mode === 'login' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
                 Accedi
               </button>
-              <button type="button" onClick={() => { setMode('register'); setError(''); setInfo(''); }} className={`rounded-lg px-3 py-2 text-sm font-bold transition ${mode === 'register' ? 'bg-green-700 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}>
+              <button
+                type="button"
+                onClick={() => switchMode('register')}
+                className={`flex-1 rounded-full px-6 py-2.5 text-sm font-bold transition-all ${
+                  mode === 'register' ? 'bg-green-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
                 Registrati
               </button>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 p-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && !forgotPasswordMode && (
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">Tipo di account</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setRole('client')} className={`rounded-xl border p-3 text-left ${role === 'client' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
-                    <User className={`mb-1 h-5 w-5 ${role === 'client' ? 'text-green-700' : 'text-gray-400'}`} />
-                    <p className="text-sm font-bold text-gray-800">Cliente</p>
-                    <p className="text-xs text-gray-500">Acquista prodotti</p>
-                  </button>
-                  <button type="button" onClick={() => setRole('pro')} className={`rounded-xl border p-3 text-left ${role === 'pro' ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}>
-                    <Crown className={`mb-1 h-5 w-5 ${role === 'pro' ? 'text-amber-600' : 'text-gray-400'}`} />
-                    <p className="text-sm font-bold text-gray-800">Pro</p>
-                    <p className="text-xs text-gray-500">Guadagna commissioni</p>
-                  </button>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <div className="flex items-center justify-between mb-2 text-xs font-semibold text-gray-700">
+                  <span>Registrazione professionale</span>
+                  <span>Step {registerStep}/2</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                  <div className="h-full bg-green-600 transition-all" style={{ width: `${registerProgress}%` }} />
                 </div>
               </div>
             )}
 
-            {mode === 'register' && !forgotPasswordMode && (
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">Nome e Cognome</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -trangray-y-1/2 text-gray-400" />
-                  <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-3 text-sm focus:border-green-500 focus:outline-none" placeholder="Mario Rossi" required />
+            {mode === 'login' && (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="mb-1.5 block text-sm font-bold text-gray-800">Email *</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="email"
+                        value={loginEmail}
+                        onChange={(event) => setLoginEmail(event.target.value)}
+                        className={inputWithIconCls}
+                        placeholder="nome@azienda.it"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {!forgotPasswordMode && (
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block text-sm font-bold text-gray-800">Password *</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={loginPassword}
+                          onChange={(event) => setLoginPassword(event.target.value)}
+                          className={`${inputWithIconCls} pr-10`}
+                          placeholder="La tua password"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {!forgotPasswordMode && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(event) => setRememberMe(event.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-green-700 focus:ring-green-600"
+                    />
+                    <span className="text-sm text-gray-600">Ricordami su questo dispositivo</span>
+                  </label>
+                )}
+              </>
+            )}
+
+            {mode === 'register' && !forgotPasswordMode && registerStep === 1 && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="mb-1.5 block text-sm font-bold text-gray-800">Nome e Cognome *</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      value={registerForm.name}
+                      onChange={e => setRegisterValue('name', e.target.value)}
+                      className={inputWithIconCls}
+                      placeholder="Mario Rossi"
+                      required
+                    />
+                  </div>
+                  {fieldErrors.name && <p className="mt-1 text-xs text-red-600">{fieldErrors.name}</p>}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-bold text-gray-800">Email *</label>
+                  <input
+                    type="email"
+                    value={registerForm.email}
+                    onChange={e => setRegisterValue('email', e.target.value)}
+                    className={inputCls}
+                    placeholder="acquisti@azienda.it"
+                    required
+                  />
+                  {fieldErrors.email && <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-bold text-gray-800">Telefono *</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="tel"
+                      value={registerForm.phone}
+                      onChange={e => setRegisterValue('phone', e.target.value)}
+                      className={inputWithIconCls}
+                      placeholder="+39 333 1234567"
+                      required
+                    />
+                  </div>
+                  {fieldErrors.phone && <p className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>}
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="mb-1.5 block text-sm font-bold text-gray-800">Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={registerForm.password}
+                      onChange={e => setRegisterValue('password', e.target.value)}
+                      minLength={8}
+                      className={`${inputCls} pr-10`}
+                      placeholder="Almeno 8 caratteri"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>}
                 </div>
               </div>
             )}
 
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-gray-700">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -trangray-y-1/2 text-gray-400" />
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-3 text-sm focus:border-green-500 focus:outline-none" placeholder="mario@esempio.it" required />
-              </div>
-            </div>
+            {mode === 'register' && !forgotPasswordMode && registerStep === 2 && (
+              <div className="space-y-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includeBillingDetails}
+                    onChange={(event) => setIncludeBillingDetails(event.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-green-700 focus:ring-green-600"
+                  />
+                  <span className="text-sm text-gray-700 font-medium">
+                    Aggiungi ora i dati aziendali e di fatturazione
+                  </span>
+                </label>
 
-            {!forgotPasswordMode && (
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -trangray-y-1/2 text-gray-400" />
-                  <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} minLength={mode === 'register' ? 6 : undefined} className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-10 text-sm focus:border-green-500 focus:outline-none" placeholder="Inserisci password" required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -trangray-y-1/2 text-gray-500 hover:text-gray-700">
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                {includeBillingDetails && (
+                  <div className="grid gap-4 sm:grid-cols-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block text-sm font-bold text-gray-800">Ragione Sociale</label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={registerForm.companyName}
+                          onChange={e => setRegisterValue('companyName', e.target.value)}
+                          className={inputWithIconCls}
+                          placeholder="Azienda S.r.l."
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-sm font-bold text-gray-800">Partita IVA</label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={registerForm.vatNumber}
+                          onChange={e => setRegisterValue('vatNumber', e.target.value.toUpperCase())}
+                          className={inputWithIconCls}
+                          placeholder="IT01234567890"
+                        />
+                      </div>
+                      {fieldErrors.vatNumber && <p className="mt-1 text-xs text-red-600">{fieldErrors.vatNumber}</p>}
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-sm font-bold text-gray-800">Codice Fiscale</label>
+                      <input
+                        type="text"
+                        value={registerForm.fiscalCode}
+                        onChange={e => setRegisterValue('fiscalCode', e.target.value.toUpperCase())}
+                        className={inputCls}
+                        placeholder="RSSMRA85M01H501Z"
+                      />
+                      {fieldErrors.fiscalCode && <p className="mt-1 text-xs text-red-600">{fieldErrors.fiscalCode}</p>}
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block text-sm font-bold text-gray-800">Indirizzo</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          value={registerForm.address}
+                          onChange={e => setRegisterValue('address', e.target.value)}
+                          className={inputWithIconCls}
+                          placeholder="Via Roma 12"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-sm font-bold text-gray-800">Citta</label>
+                      <input
+                        type="text"
+                        value={registerForm.city}
+                        onChange={e => setRegisterValue('city', e.target.value)}
+                        className={inputCls}
+                        placeholder="Milano"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-bold text-gray-800">CAP</label>
+                        <input
+                          type="text"
+                          value={registerForm.cap}
+                          onChange={e => setRegisterValue('cap', e.target.value)}
+                          className={inputCls}
+                          placeholder="20100"
+                        />
+                        {fieldErrors.cap && <p className="mt-1 text-xs text-red-600">{fieldErrors.cap}</p>}
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-bold text-gray-800">Provincia</label>
+                        <input
+                          type="text"
+                          value={registerForm.province}
+                          onChange={e => setRegisterValue('province', e.target.value.toUpperCase())}
+                          className={inputCls}
+                          placeholder="MI"
+                        />
+                        {fieldErrors.province && <p className="mt-1 text-xs text-red-600">{fieldErrors.province}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {mode === 'register' && !forgotPasswordMode && (
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">Telefono</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -trangray-y-1/2 text-gray-400" />
-                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full rounded-xl border border-gray-300 py-2.5 pl-10 pr-3 text-sm focus:border-green-500 focus:outline-none" placeholder="+39 333 123 4567" required />
-                </div>
-              </div>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</div>
             )}
-
-            {error && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</div>}
-            {info && <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-700">{info}</div>}
+            {info && (
+              <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-700">{info}</div>
+            )}
 
             {pendingVerificationEmail && !forgotPasswordMode && (
-              <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-3">
+              <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
                 <p className="text-sm font-semibold text-blue-900">Conferma email richiesta</p>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={handleResend} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                <p className="text-xs text-blue-700">Email inviata a {pendingVerificationEmail}. Controlla anche Spam.</p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                  >
                     <Send className="h-4 w-4" /> Invia nuova email
                   </button>
-                  <button type="button" onClick={handleConfirmVerified} className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700">
+                  <button
+                    type="button"
+                    onClick={handleConfirmVerified}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
+                  >
                     <CheckCircle2 className="h-4 w-4" /> Ho confermato
                   </button>
                 </div>
@@ -282,29 +717,68 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             )}
 
             {forgotPasswordMode ? (
-              <>
-                <button type="button" onClick={handlePasswordReset} className="w-full rounded-xl bg-green-700 py-2.5 text-sm font-bold text-white hover:bg-green-800">
-                  Invia email recupero password
+              <div className="space-y-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60 transition-colors"
+                >
+                  {loading ? 'Invio in corso...' : 'Invia email di recupero'}
                 </button>
-                <button type="button" onClick={() => { setForgotPasswordMode(false); setError(''); setInfo(''); }} className="w-full rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotPasswordMode(false);
+                    setError('');
+                    setInfo('');
+                  }}
+                  className="w-full rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                >
                   Torna al login
                 </button>
-              </>
+              </div>
             ) : (
-              <>
-                <button type="submit" disabled={loading} className="w-full rounded-xl bg-green-700 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-60">
-                  {actionLabel}
-                </button>
-                {mode === 'login' && (
-                  <button type="button" onClick={() => { setForgotPasswordMode(true); setError(''); setInfo(''); }} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                    <KeyRound className="h-4 w-4" /> Recupera Password
+              <div className="space-y-3 pt-1">
+                {mode === 'register' && registerStep === 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setRegisterStep(1)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Torna allo step precedente
                   </button>
                 )}
-              </>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60 transition-colors"
+                >
+                  {mode === 'register' ? registerActionLabel : loading ? 'Accesso in corso...' : 'Accedi'}
+                </button>
+
+                {mode === 'login' && (
+                  <p className="text-center text-sm text-gray-500">
+                    Hai dimenticato la password?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotPasswordMode(true);
+                        setError('');
+                        setInfo('');
+                      }}
+                      className="font-bold text-green-700 hover:text-green-700 transition-colors"
+                    >
+                      Recupera Password
+                    </button>
+                  </p>
+                )}
+              </div>
             )}
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

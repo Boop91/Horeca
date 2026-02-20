@@ -10,6 +10,7 @@
 
 const fallbackPublishableKey = 'pk_test_INSERISCI_QUI_LA_TUA_PUBLISHABLE_KEY';
 const localStorageKey = 'stripePublishableKey';
+const localSecretStorageKey = 'stripeSecretKeyLocalDev';
 
 export function getStripePublishableKey(): string {
   if (typeof window !== 'undefined') {
@@ -39,5 +40,28 @@ export function isStripeConfigured(): boolean {
 export function persistStripePublishableKey(key: string) {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(localStorageKey, key);
+  }
+}
+
+export function resetStripePublishableKey() {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(localStorageKey);
+  }
+}
+
+export function getStripeSecretKeyForLocalDev(): string {
+  if (typeof window === 'undefined') return '';
+  return window.localStorage.getItem(localSecretStorageKey) || '';
+}
+
+export function persistStripeSecretKeyForLocalDev(key: string) {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(localSecretStorageKey, key);
+  }
+}
+
+export function resetStripeSecretKeyForLocalDev() {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(localSecretStorageKey);
   }
 }

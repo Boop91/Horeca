@@ -1,0 +1,28 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 6
+
+[agents.coordinatore]
+description = "Coordina il lavoro: decide, integra, assegna compiti ai sotto-agenti, chiude ogni ciclo con verifica e aggiornamento diario."
+config_file = ".codex/agents/coordinatore.toml"
+
+[agents.esperienza_uso]
+description = "Esperto di esperienza d’uso: flussi, architettura informativa, prevenzione errore, coerenza, prevedibilità."
+config_file = ".codex/agents/esperienza_uso.toml"
+
+[agents.interfaccia]
+description = "Esperto di interfaccia: griglia, allineamenti, spaziatura, gerarchia visiva, consistenza, contrasto."
+config_file = ".codex/agents/interfaccia.toml"
+
+[agents.contenuti]
+description = "Esperto di contenuti: etichette, microtesti, messaggi di errore, chiarezza e tono."
+config_file = ".codex/agents/contenuti.toml"
+
+[agents.collaudo]
+description = "Collaudatore: test, controlli, regressioni, qualità finale. Deve essere severo."
+config_file = ".codex/agents/collaudo.toml"

@@ -11,24 +11,26 @@
  */
 
 import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, Clock, ArrowLeft, User, Calendar, Tag } from 'lucide-react';
-import { getGuideBySlug, guides } from '../data/guides';
+import { Clock, ArrowLeft, User, Calendar, Tag } from 'lucide-react';
+import { getStoreBlogArticleBySlug, useStoreBlogArticles } from '../lib/storefrontStore';
+import { formatCatalogLabel, resolveCatalogPath } from '../utils/catalogRouting';
 
 export default function GuidePage() {
   /* ── Recupera lo slug dall'URL ───────────────────────────────────── */
   const { slug } = useParams<{ slug: string }>();
+  const blogArticles = useStoreBlogArticles(false);
 
   /* ── Cerca la guida corrispondente ───────────────────────────────── */
-  const guide = slug ? getGuideBySlug(slug) : undefined;
+  const guide = slug ? getStoreBlogArticleBySlug(slug, false) : undefined;
 
   /* ── Stato: guida non trovata ────────────────────────────────────── */
   if (!guide) {
     return (
-      <main className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8 mb-20 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <main className="app-page-shell py-16 mb-20 text-center">
+        <h1 className="app-page-title text-2xl font-bold text-gray-900 mb-4">
           Guida non trovata
         </h1>
-        <p className="text-gray-600 mb-8">
+        <p className="app-page-subtitle text-gray-600 mb-8">
           La guida che stai cercando non esiste o e stata rimossa.
           Controlla l&apos;URL oppure torna alla lista completa.
         </p>
@@ -43,7 +45,7 @@ export default function GuidePage() {
   }
 
   /* ── Guide correlate (max 3, escludendo la guida corrente) ───────── */
-  const relatedGuides = guides
+  const relatedGuides = blogArticles
     .filter((g) => g.slug !== guide.slug)
     .slice(0, 3);
 
@@ -55,16 +57,7 @@ export default function GuidePage() {
   });
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-
-      {/* ── Breadcrumb di navigazione ──────────────────────────────── */}
-      <nav className="flex items-center space-x-2 text-sm mb-8">
-        <Link to="/" className="text-gray-600 hover:text-green-600">Home</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <Link to="/guide" className="text-gray-600 hover:text-green-600">Guide</Link>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 font-medium line-clamp-1">{guide.title}</span>
-      </nav>
+    <main className="app-page-shell py-8 mb-20">
 
       {/* ── Articolo principale ────────────────────────────────────── */}
       <article className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 shadow-sm">
@@ -75,9 +68,19 @@ export default function GuidePage() {
         </span>
 
         {/* Titolo della guida */}
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4">
+        <h1 className="app-page-title text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4">
           {guide.title}
         </h1>
+        {guide.image && (
+          <div className="mb-6 overflow-hidden rounded-xl border border-gray-200">
+            <img
+              src={guide.image}
+              alt={guide.title}
+              className="h-full max-h-[360px] w-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
 
         {/* Metadati: autore, data, tempo di lettura */}
         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-100">
@@ -108,16 +111,27 @@ export default function GuidePage() {
               Categorie correlate
             </h3>
             <div className="flex flex-wrap gap-2">
-              {guide.relatedCategories.map((catSlug) => (
-                <Link
-                  key={catSlug}
-                  to={`/categoria/${catSlug}`}
-                  className="inline-block px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border border-gray-200"
-                >
-                  {/* Mostra lo slug in formato leggibile */}
-                  {catSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                </Link>
-              ))}
+              {guide.relatedCategories.map((catSlug) => {
+                const targetPath = resolveCatalogPath(catSlug);
+
+                return targetPath ? (
+                  <Link
+                    key={catSlug}
+                    to={targetPath}
+                    className="inline-block px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border border-gray-200"
+                  >
+                    {formatCatalogLabel(catSlug)}
+                  </Link>
+                ) : (
+                  <span
+                    key={catSlug}
+                    className="inline-block px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-500 border border-gray-200"
+                    title="Categoria non disponibile nel catalogo corrente"
+                  >
+                    {formatCatalogLabel(catSlug)}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}

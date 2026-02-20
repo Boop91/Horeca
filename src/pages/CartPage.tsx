@@ -7,15 +7,15 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <main className="max-w-4xl mx-auto px-4 py-16 text-center">
+      <main className="app-page-shell py-16 text-center">
         <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
           <ShoppingCart className="w-10 h-10 text-gray-400" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">Il tuo carrello è vuoto</h1>
-        <p className="text-gray-600 mb-8">Aggiungi prodotti al carrello per procedere all'acquisto.</p>
+        <h1 className="app-page-title text-2xl font-bold text-gray-900 mb-3">Il tuo carrello è vuoto</h1>
+        <p className="app-page-subtitle text-gray-600 mb-8">Aggiungi prodotti al carrello per procedere all'acquisto.</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors"
+          className="app-action-primary inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Continua lo shopping
@@ -29,8 +29,8 @@ export default function CartPage() {
   const totalGross = totalNet + totalVat;
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8 mb-20">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Carrello ({items.length} {items.length === 1 ? 'prodotto' : 'prodotti'})</h1>
+    <main className="app-page-shell py-8 mb-20">
+      <h1 className="app-page-title text-2xl font-bold text-gray-900 mb-8">Carrello ({items.length} {items.length === 1 ? 'prodotto' : 'prodotti'})</h1>
 
       <div className="grid gap-8 lg:grid-cols-[1fr,380px]">
         {/* Cart Items */}
@@ -106,7 +106,7 @@ export default function CartPage() {
           </div>
           <Link
             to="/checkout"
-            className="mt-6 w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors"
+            className="app-action-primary mt-6 w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors"
           >
             Procedi al checkout
             <ArrowRight className="w-4 h-4" />

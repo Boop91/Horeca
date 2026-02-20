@@ -1,72 +1,142 @@
 import { Link } from 'react-router-dom';
+import { Facebook, Instagram, Send, Youtube } from 'lucide-react';
+import { companyInfo } from '../data/companyInfo';
+import './Footer.css';
+
+const infoLinks = [
+  { label: 'Contattaci', to: '/contatti' },
+  { label: 'Condizioni di Vendita', to: '/condizioni-vendita' },
+  { label: 'Chi siamo', to: '/chi-siamo' },
+  { label: 'I nostri Brand', to: '/chi-siamo' },
+  { label: 'Privacy Policy', to: '/condizioni-vendita#privacy' },
+  { label: 'Cookie Policy', to: '/condizioni-vendita#cookie' },
+];
+
+const productLinks = [
+  { label: 'Linea Caldo', to: '/categoria/linea-caldo' },
+  { label: 'Linea Freddo', to: '/categoria/linea-freddo' },
+  { label: 'Preparazione', to: '/categoria/preparazione' },
+  { label: 'Carrelli e Mobili', to: '/categoria/carrelli-arredo' },
+  { label: 'Igiene e Pulizia', to: '/categoria/igiene' },
+  { label: 'Hotellerie', to: '/categoria/hotellerie' },
+  { label: 'Ricambi', to: '/categoria/ricambi' },
+];
+
+const utilityLinks = [
+  { label: 'Domande Frequenti', to: '/faq' },
+  { label: 'Blog e guide utili', to: '/guide' },
+  { label: 'Glossario', to: '/glossario' },
+  { label: 'Mappa del sito', to: '/' },
+  { label: 'Pagamenti', to: '/account/pagamenti' },
+  { label: 'Noleggio operativo', to: '/contatti' },
+  { label: 'Spedizioni', to: '/contatti' },
+  { label: 'I nostri video', to: '/guide' },
+  { label: 'Sigep', to: '/guide' },
+];
+
+const socialLinks = [
+  { label: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook },
+  { label: 'Instagram', href: 'https://www.instagram.com/', icon: Instagram },
+  { label: 'YouTube', href: 'https://www.bianchipro.it/it/content/54-i-nostri-video', icon: Youtube },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-[#1a2332] text-white mt-16">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-          {/* Logo and Description */}
-          <div className="md:col-span-4">
-            <Link to="/" className="flex items-center space-x-2 mb-3 hover:opacity-80 transition-opacity">
-              <div className="w-9 h-9 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
-              </div>
-              <span className="text-xl font-bold tracking-tight">BIANCHI PRO</span>
-            </Link>
-            <p className="text-sm text-gray-400 leading-relaxed mb-6">
-              Attrezzature professionali per la ristorazione<br />e l'hotellerie dagli anni '60.
+    <footer className="horeca-footer">
+      <section className="horeca-footer-newsletter" aria-label="Newsletter e social">
+        <div className="horeca-footer-container horeca-footer-newsletter-row">
+          <div className="horeca-footer-newsletter-copy">
+            <h2 className="horeca-footer-newsletter-title">Newsletter professionale</h2>
+            <p className="horeca-footer-newsletter-subtitle">
+              Ricevi anteprime esclusive, guide e promozioni dedicate. Contattaci e attiviamo l&apos;iscrizione.
             </p>
-            <Link to="/contatti" className="bg-[#2a3542] hover:bg-[#364252] text-white px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors inline-block">
-              Contattaci
-            </Link>
           </div>
 
-          {/* Azienda */}
-          <div className="md:col-span-2">
-            <h3 className="font-bold mb-4 text-base">Azienda</h3>
-            <ul className="space-y-2.5 text-sm text-gray-400">
-              <li><Link to="/chi-siamo" className="hover:text-white transition-colors">Chi Siamo</Link></li>
-              <li><Link to="/contatti" className="hover:text-white transition-colors">Contatti</Link></li>
-              <li><Link to="/guide" className="hover:text-white transition-colors">Guide</Link></li>
-              <li><Link to="/glossario" className="hover:text-white transition-colors">Glossario</Link></li>
-            </ul>
-          </div>
+          <Link to="/contatti?oggetto=newsletter" className="horeca-footer-newsletter-cta">
+            <Send className="h-4 w-4" strokeWidth={2.3} />
+            Richiedi iscrizione
+          </Link>
 
-          {/* Supporto */}
-          <div className="md:col-span-2">
-            <h3 className="font-bold mb-4 text-base">Supporto</h3>
-            <ul className="space-y-2.5 text-sm text-gray-400">
-              <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-              <li><Link to="/contatti" className="hover:text-white transition-colors">Spedizioni</Link></li>
-              <li><Link to="/condizioni-vendita" className="hover:text-white transition-colors">Resi e Garanzie</Link></li>
-              <li><Link to="/categoria/ricambi" className="hover:text-white transition-colors">Ricambi</Link></li>
-            </ul>
-          </div>
-
-          {/* Legale */}
-          <div className="md:col-span-2">
-            <h3 className="font-bold mb-4 text-base">Legale</h3>
-            <ul className="space-y-2.5 text-sm text-gray-400">
-              <li><Link to="/condizioni-vendita" className="hover:text-white transition-colors">Condizioni di Vendita</Link></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
-            </ul>
-          </div>
-
-          {/* Area Account */}
-          <div className="md:col-span-2 flex justify-start md:justify-end items-start">
-            <Link to="/account" className="bg-[#2a3542] hover:bg-[#364252] text-white px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors inline-block">
-              Area Cliente
-            </Link>
+          <div className="horeca-footer-social-wrap">
+            <p className="horeca-footer-social-label">Seguici</p>
+            <div className="horeca-footer-social-icons">
+              {socialLinks.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={item.label}
+                  className="horeca-footer-social-link"
+                >
+                  <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="border-t border-gray-700 mt-10 pt-6">
-          <p className="text-xs text-gray-500 text-center">
-            © {new Date().getFullYear()} OMNIA SRL Unipersonale — Tutti i diritti riservati. P.IVA IT03434940403 — Via Giordano Bruno 10, 47822 Santarcangelo di Romagna (RN)
-          </p>
+      <section className="horeca-footer-main" aria-label="Link utili e contatti">
+        <div className="horeca-footer-container horeca-footer-main-column">
+          <div className="horeca-footer-links-grid">
+            <section className="horeca-footer-link-column">
+              <h4 className="horeca-footer-link-title">Restiamo in contatto</h4>
+              <p className="horeca-footer-contact-legal">{companyInfo.legalEntity}</p>
+              <p className="horeca-footer-contact-line">{companyInfo.address.street}</p>
+              <p className="horeca-footer-contact-line">
+                {companyInfo.address.cap} - {companyInfo.address.city} ({companyInfo.address.province}) Italia
+              </p>
+              <p className="horeca-footer-contact-line">
+                Telefono <a href={`tel:${companyInfo.contacts.phone.replace(/\s+/g, '')}`}>{companyInfo.contacts.phone}</a>
+              </p>
+              <p className="horeca-footer-contact-line">
+                Whatsapp{' '}
+                <a href={`https://wa.me/${companyInfo.contacts.whatsapp.replace(/[^\d]/g, '')}`}>
+                  {companyInfo.contacts.whatsapp}
+                </a>
+              </p>
+              <p className="horeca-footer-contact-mail">
+                <a href={`mailto:${companyInfo.contacts.email}`}>{companyInfo.contacts.email}</a>
+              </p>
+              <p className="horeca-footer-vat">P. IVA {companyInfo.vatNumber}</p>
+            </section>
+
+            <section className="horeca-footer-link-column">
+              <h4 className="horeca-footer-link-title">Informazioni</h4>
+              <ul className="horeca-footer-link-list">
+                {infoLinks.map((item) => (
+                  <li key={item.label}>
+                    <Link to={item.to}>{item.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="horeca-footer-link-column">
+              <h4 className="horeca-footer-link-title">I nostri prodotti</h4>
+              <ul className="horeca-footer-link-list">
+                {productLinks.map((item) => (
+                  <li key={item.label}>
+                    <Link to={item.to}>{item.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="horeca-footer-link-column">
+              <h4 className="horeca-footer-link-title">Utilita</h4>
+              <ul className="horeca-footer-link-list">
+                {utilityLinks.map((item) => (
+                  <li key={item.label}>
+                    <Link to={item.to}>{item.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
         </div>
-      </div>
+      </section>
     </footer>
   );
 }

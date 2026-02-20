@@ -99,7 +99,8 @@
       "Bash(./node_modules/.bin/tsc:*)",
       "WebFetch(domain:www.bianchipro.it)",
       "Bash(npx vitest run:*)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

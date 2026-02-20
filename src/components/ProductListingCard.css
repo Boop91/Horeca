@@ -1,0 +1,214 @@
+.listing-product-card {
+  width: 100%;
+  max-width: 300px;
+  height: 422.5px;
+  border-radius: var(--radius-xl);
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  box-shadow: var(--shadow-lg);
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.listing-product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px -22px rgba(15, 23, 42, 0.58);
+}
+
+.listing-product-media-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.listing-product-badges-left {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.listing-product-badge {
+  border-radius: 9999px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Manrope', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  min-height: 22px;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listing-product-badge-new {
+  background: #4b90fe;
+  color: #ffffff;
+}
+
+.listing-product-badge-offer {
+  background: #fdc044;
+  color: #ffffff;
+}
+
+.listing-product-badge-best {
+  position: absolute;
+  top: 13px;
+  right: 16px;
+  z-index: 1;
+  pointer-events: none;
+  background: #c2ebcf;
+  color: #347849;
+  padding: 0 10px;
+}
+
+.listing-product-media-link {
+  display: block;
+  text-decoration: none;
+}
+
+.listing-product-media {
+  width: 100%;
+  height: 224px;
+  border-radius: var(--radius-lg);
+  border: 1px solid #e2e8f0;
+  background: #eaeaea;
+  overflow: hidden;
+}
+
+.listing-product-media-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listing-product-media-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.listing-product-body {
+  padding: 0 4px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.listing-product-category {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 6px;
+  background: #bce3ca;
+  color: #2c6e49;
+  padding: 0 8px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listing-product-title-link {
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+.listing-product-title {
+  margin: 0;
+  color: #1f2937;
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 22.5px;
+  min-height: 67px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.listing-product-footer {
+  margin-top: auto;
+  padding-top: 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.listing-product-price-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.listing-product-price-main {
+  margin: 0;
+  color: #1f2937;
+  font-family: 'Manrope', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.listing-product-price-old {
+  margin: 0;
+  color: #64748b;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: line-through;
+}
+
+.listing-product-price-old-empty {
+  text-decoration: none;
+}
+
+.listing-product-buy {
+  border: 0;
+  border-radius: 9999px;
+  background: #ecfdf5;
+  color: #166534;
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  width: 116px;
+  min-height: 40px;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.listing-product-buy:hover {
+  background: #166534;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .listing-product-card {
+    width: 100%;
+    max-width: 360px;
+  }
+}

@@ -33,11 +33,17 @@ function Read-SingleKey([string]$prompt, [string]$defaultValue = "", [string[]]$
     }
 
     while ($true) {
-        $keyInfo = [Console]::ReadKey($true)
-        $k = $keyInfo.KeyChar
-        if ([char]::IsControl($k)) {
-            continue
+        try {
+            # Usa il metodo del host PowerShell (piu' affidabile dopo cambio focus finestra)
+            $keyInfo = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            $k = $keyInfo.Character
+        } catch {
+            # Fallback: chiedi input con Read-Host (richiede Invio)
+            $raw = Read-Host
+            if ($raw.Length -gt 0) { $k = $raw[0] } else { continue }
         }
+
+        if ([char]::IsControl($k)) { continue }
 
         $value = ([string]$k).Trim().ToUpper()
         if (-not $value) {
@@ -417,18 +423,23 @@ function Run-Menu {
         $k = Read-SingleKey "Scelta rapida: " "" @("1", "2", "3", "4", "5", "6", "7", "Q")
 
         try {
-            if ($k -eq "1") { Start-Local; continue }
-            if ($k -eq "2") { Share-Online; continue }
-            if ($k -eq "3") { Stop-All; continue }
-            if ($k -eq "4") { Open-Local; continue }
-            if ($k -eq "5") { Open-Online; continue }
-            if ($k -eq "6") { Show-Log; continue }
-            if ($k -eq "7") { Fix-PostCss | Out-Null; T "Controllo completato." "Green"; continue }
             if ($k -eq "Q") { break }
-            T "Scelta non valida." "Yellow"
+            if ($k -eq "1") { Start-Local }
+            elseif ($k -eq "2") { Share-Online }
+            elseif ($k -eq "3") { Stop-All }
+            elseif ($k -eq "4") { Open-Local }
+            elseif ($k -eq "5") { Open-Online }
+            elseif ($k -eq "6") { Show-Log }
+            elseif ($k -eq "7") { Fix-PostCss | Out-Null; T "Controllo completato." "Green" }
+            else { T "Scelta non valida." "Yellow" }
         } catch {
             T "ERRORE: $($_.Exception.Message)" "Red"
         }
+
+        # Pausa dopo ogni comando per dare tempo di leggere l'output
+        Write-Host ""
+        Write-Host "  Premi un tasto per tornare al menu..." -ForegroundColor DarkGray
+        Read-SingleKey "" "" @()
     }
 }
 

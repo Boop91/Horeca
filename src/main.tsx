@@ -20,13 +20,19 @@
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
-import './index.css'; // Stili globali e design tokens
+import ScrollToTop from './components/ScrollToTop.tsx';
+import { initCWVObservers } from './lib/cwv.ts';
+import './index.css'; // Utility CSS Tailwind (pre-compilato)
+import './styles/globals.css'; // Design tokens, Manrope, stili base
+
+initCWVObservers();
 
 // Monta l'applicazione React nel DOM.
 // L'operatore `!` (non-null assertion) garantisce a TypeScript che l'elemento esiste.
 createRoot(document.getElementById('root')!).render(
   // BrowserRouter abilita la navigazione client-side senza ricaricare la pagina
   <BrowserRouter>
+    <ScrollToTop />
     <App />
   </BrowserRouter>
 );

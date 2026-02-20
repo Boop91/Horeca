@@ -1,0 +1,97 @@
+import fs from "node:fs";
+import path from "node:path";
+import { chromium } from "playwright";
+
+const url = process.argv[2];
+const outdir = process.argv[3];
+
+if (!url || !outdir) {
+  console.error("Uso: node audit/audit-ui.mjs <url> <cartella_output>");
+  process.exit(1);
+}
+
+const report = {
+  url,
+  timestamp: new Date().toISOString(),
+  viewport: { width: 1440, height: 900 },
+  issues: [],
+  notes: [],
+};
+
+const ensureDir = (p) => fs.mkdirSync(p, { recursive: true });
+
+ensureDir(outdir);
+
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: report.viewport });
+
+try {
+  await page.goto(url, { waitUntil: "networkidle", timeout: 120000 });
+} catch (e) {
+  report.issues.push({
+    type: "navigazione_fallita",
+    detail: String(e),
+  });
+  fs.writeFileSync(path.join(outdir, "report.json"), JSON.stringify(report, null, 2));
+  await browser.close();
+  process.exit(2);
+}
+
+await page.waitForTimeout(500);
+
+await page.screenshot({ path: path.join(outdir, "home.png"), fullPage: true });
+
+const data = await page.evaluate(() => {
+  const items = [];
+  const els = Array.from(document.querySelectorAll("body *"));
+
+  for (const el of els) {
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) continue;
+
+    const style = getComputedStyle(el);
+    const visible = style.visibility !== "hidden" && style.display !== "none" && parseFloat(style.opacity || "1") > 0;
+
+    if (!visible) continue;
+
+    items.push({
+      tag: el.tagName.toLowerCase(),
+      id: el.id || null,
+      cls: (el.className && typeof el.className === "string") ? el.className.slice(0, 120) : null,
+      x: r.x, y: r.y, w: r.width, h: r.height,
+      z: style.zIndex || "auto",
+      pos: style.position || "static",
+    });
+  }
+
+  // Collisioni grezze: se due rettangoli si sovrappongono “molto”
+  const overlaps = [];
+  const max = Math.min(items.length, 2500); // limite per non esplodere
+  for (let i = 0; i < max; i++) {
+    for (let j = i + 1; j < max; j++) {
+      const a = items[i], b = items[j];
+      const ix = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
+      const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+      const area = ix * iy;
+      if (area > 2000) {
+        overlaps.push({ a, b, area });
+      }
+      if (overlaps.length > 120) break;
+    }
+    if (overlaps.length > 120) break;
+  }
+
+  return { count: items.length, overlaps };
+});
+
+report.notes.push(`Elementi analizzati: ${data.count}`);
+if (data.overlaps.length) {
+  report.issues.push({
+    type: "sovrapposizioni_probabili",
+    count: data.overlaps.length,
+    sample: data.overlaps.slice(0, 20),
+  });
+}
+
+fs.writeFileSync(path.join(outdir, "report.json"), JSON.stringify(report, null, 2));
+await browser.close();

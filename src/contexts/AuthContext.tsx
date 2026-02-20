@@ -87,7 +87,13 @@ interface RegisterData {
   password: string;
   name: string;
   phone: string;
-  role: 'client' | 'pro';
+  companyName?: string;
+  vatNumber?: string;
+  fiscalCode?: string;
+  address?: string;
+  city?: string;
+  cap?: string;
+  province?: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -105,12 +111,6 @@ function generateId(): string {
 
 function generateTemporaryPassword(): string {
   return `Tmp-${Math.random().toString(36).slice(2, 6)}${Math.floor(100 + Math.random() * 900)}`;
-}
-
-function generateReferralCode(name: string): string {
-  const prefix = name.replace(/\s+/g, '').slice(0, 4).toUpperCase();
-  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `PRO-${prefix}-${suffix}`;
 }
 
 function loadUsers(): (User & { password: string })[] {
@@ -270,7 +270,20 @@ function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     const { data: authData, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
-      options: { data: { name: data.name, phone: data.phone, role: data.role } },
+      options: {
+        data: {
+          name: data.name,
+          phone: data.phone,
+          role: 'client',
+          companyName: data.companyName,
+          vatNumber: data.vatNumber,
+          fiscalCode: data.fiscalCode,
+          address: data.address,
+          city: data.city,
+          cap: data.cap,
+          province: data.province,
+        },
+      },
     });
     if (error) return { success: false, error: error.message };
 
@@ -279,7 +292,10 @@ function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       await supabase.from('users_profile').insert({
         user_id: authData.user.id,
         telefono: data.phone,
-        ruolo: data.role === 'pro' ? 'client' : data.role, // DB only has admin|client
+        ruolo: 'client', // DB only has admin|client
+        ragione_sociale: data.companyName,
+        partita_iva: data.vatNumber,
+        codice_fiscale: data.fiscalCode,
       });
     }
 
@@ -415,22 +431,21 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Email già registrata' };
     }
     const newUser: User & { password: string } = {
-      id: `${data.role}-${generateId()}`,
+      id: `client-${generateId()}`,
       email: data.email,
       password: data.password,
       name: data.name,
       phone: data.phone,
-      role: data.role,
+      role: 'client',
       createdAt: new Date().toISOString(),
+      ragione_sociale: data.companyName,
+      partita_iva: data.vatNumber,
+      codice_fiscale: data.fiscalCode,
       walletBalance: 0,
       walletTransactions: [],
       withdrawalRequests: [],
       emailVerified: false,
       verificationSentAt: new Date().toISOString(),
-      ...(data.role === 'pro' ? {
-        referralCode: generateReferralCode(data.name),
-        referralUsages: [],
-      } : {}),
     };
     setUsers(prev => [...prev, newUser]);
     return { success: true, requiresEmailVerification: true, email: newUser.email };

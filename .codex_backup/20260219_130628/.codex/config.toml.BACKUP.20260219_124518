@@ -1,0 +1,16 @@
+approval_policy = "on-request"
+sandbox_mode    = "workspace-write"
+
+# Scegli modello dal selettore in interfaccia; qui metto un valore di default.
+# Se nel tuo Codex vedi gpt-5.3-codex, puoi impostarlo anche qui.
+model = "gpt-5.3-codex"
+
+# Multi-agenti: funzione sperimentale.
+# (La sintassi può evolvere perché è sperimentale: se Codex non la legge, lo segnala in output.)
+[features]
+multi_agent = true
+
+agents.max_threads = 5
+
+[agents.default]
+description = "COORDINATORE (capo progetto). Lavora a turni, NON in parallelo. Applica metodo scientifico: osservare -> ipotizzare -> intervenire -> verificare -> confutare/tenere -> documentare. Chiede pareri agli specialisti solo quando serve, integra e decide. Deve sempre: (1) far generare un rapporto agli specialisti, (2) proporre un piano minimo, (3) modificare, (4) eseguire verifiche scriptate, (5) mostrare differenze e chiedere conferma."
